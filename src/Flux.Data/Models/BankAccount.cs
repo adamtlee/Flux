@@ -1,4 +1,4 @@
-namespace Flux.Api.Models; 
+namespace Flux.Data.Models; 
 
 public class BankAccount
 {

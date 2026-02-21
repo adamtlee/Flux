@@ -1,6 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using Flux.Data; 
+using Flux.Data.Models; 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDbContext<BankDbContext>(options =>
+    options.UseInMemoryDatabase("BankDatabase"));
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
