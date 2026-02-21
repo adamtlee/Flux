@@ -86,8 +86,9 @@ curl -X POST http://localhost:5271/api/bank \
   "balance": 1000.00,
   "accountType": "Checking"
 }'
+```
 
 ---
 
-⚠️ Important Note
+## ⚠️ Important Note
 This project currently uses an In-Memory Database. All data is stored in RAM and will be permanently deleted whenever the application process is stopped or restarted. This is intended for development and testing purposes only.
