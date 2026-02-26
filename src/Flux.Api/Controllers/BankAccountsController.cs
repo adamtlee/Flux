@@ -30,14 +30,14 @@ public class BankAccountsController : ControllerBase
     }
 
     // Are comments like this "READ ALL" necessary?
-    // READ ALL
+    // * Removed Unecessary comments
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BankAccount>>> GetAccounts()
     {
         return await _context.Accounts.ToListAsync();
     }
 
-    // READ ONE
     [HttpGet("{id}")]
     public async Task<ActionResult<BankAccount>> GetAccount(Guid id)
     {
@@ -46,7 +46,6 @@ public class BankAccountsController : ControllerBase
         return account;
     }
 
-    // CREATE
     [HttpPost]
     public async Task<ActionResult<BankAccount>> PostAccount(BankAccount account)
     {
@@ -55,7 +54,6 @@ public class BankAccountsController : ControllerBase
         return CreatedAtAction(nameof(GetAccount), new { id = account.Id }, account);
     }
 
-    // UPDATE
     [HttpPut("{id}")]
     public async Task<IActionResult> PutAccount(Guid id, BankAccount account)
     {
@@ -66,7 +64,6 @@ public class BankAccountsController : ControllerBase
         return NoContent();
     }
 
-    // DELETE
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAccount(Guid id)
     {
