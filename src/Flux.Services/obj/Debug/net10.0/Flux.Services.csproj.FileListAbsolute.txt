@@ -1,0 +1,11 @@
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/bin/Debug/net10.0/Flux.Services.deps.json
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/bin/Debug/net10.0/Flux.Services.dll
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/bin/Debug/net10.0/Flux.Services.pdb
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/Flux.Services.GeneratedMSBuildEditorConfig.editorconfig
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/Flux.Services.AssemblyInfoInputs.cache
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/Flux.Services.AssemblyInfo.cs
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/Flux.Services.csproj.CoreCompileInputs.cache
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/Flux.Services.dll
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/refint/Flux.Services.dll
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/Flux.Services.pdb
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/ref/Flux.Services.dll
