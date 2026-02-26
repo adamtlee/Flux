@@ -1,8 +1,9 @@
-namespace Flux.Data.Models; 
+namespace Flux.Data.Models;
 
 public class BankAccount
 {
-    public Guid Id { get; set; } = Guid.NewGuid(); 
+    // What Id is this exactly? Is it a domain identifier? To be used as a primary key?
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     public string Owner { get; set; } = string.Empty;
 
@@ -19,3 +20,5 @@ public enum AccountType
     Checking,
     Savings
 }
+
+// What other properties would you add here?
