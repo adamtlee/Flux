@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Flux.Data\Flux.Data.csproj" />
+    <ProjectReference Include="..\Flux.Services\Flux.Services.csproj" />
   </ItemGroup>
 
 </Project>

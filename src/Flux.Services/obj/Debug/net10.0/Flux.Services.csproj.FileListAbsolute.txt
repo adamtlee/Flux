@@ -9,3 +9,7 @@
 /Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/refint/Flux.Services.dll
 /Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/Flux.Services.pdb
 /Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/ref/Flux.Services.dll
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/Flux.Services.csproj.AssemblyReference.cache
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/bin/Debug/net10.0/Flux.Data.dll
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/bin/Debug/net10.0/Flux.Data.pdb
+/Users/adamlee/Projects/Doxtera/Flux/src/Flux.Services/obj/Debug/net10.0/Flux.Ser.2F2A21E2.Up2Date
