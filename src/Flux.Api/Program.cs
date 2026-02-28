@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Flux.Data; 
-using Flux.Data.Models; 
+using Flux.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +11,8 @@ builder.Services.AddDbContext<BankDbContext>(options =>
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<IBankAccountService, BankAccountService>();
 
 var app = builder.Build();
 
