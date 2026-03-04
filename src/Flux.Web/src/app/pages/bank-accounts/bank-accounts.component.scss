@@ -1,0 +1,225 @@
+.accounts-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+// Header
+.accounts-header {
+  margin-bottom: 3rem;
+  text-align: center;
+
+  h1 {
+    font-size: 2.5rem;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: #666;
+  }
+}
+
+// Error Message
+.error-message {
+  background: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  color: #c62828;
+
+  p {
+    margin-bottom: 1rem;
+  }
+
+  .btn {
+    margin-top: 1rem;
+  }
+}
+
+// Total Balance Card
+.total-balance-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+
+  .balance-content {
+    h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0.9;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .balance-amount {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .balance-accounts {
+      opacity: 0.85;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+// Accounts List
+.accounts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+// Account Card
+.account-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+  }
+}
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.account-info {
+  flex: 1;
+
+  h3 {
+    font-size: 1.25rem;
+    color: #1a1a1a;
+    margin-bottom: 0.25rem;
+  }
+
+  .account-number {
+    color: #999;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+}
+
+.account-type {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border-radius: 2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.account-balance {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 0.5rem;
+
+  .balance-label {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .balance-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+}
+
+.account-footer {
+  .account-meta {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+
+    .meta-label {
+      font-size: 0.8rem;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .meta-value {
+      color: #1a1a1a;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+// No Accounts
+.no-accounts {
+  text-align: center;
+  padding: 3rem;
+  background: #f9f9f9;
+  border-radius: 1rem;
+  border: 2px dashed #e0e0e0;
+
+  p {
+    margin: 0.5rem 0;
+    color: #666;
+  }
+
+  .text-secondary {
+    color: #999;
+    font-size: 0.95rem;
+  }
+}
+
+// Button Styles
+.btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}

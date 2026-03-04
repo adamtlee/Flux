@@ -75,7 +75,8 @@
               "buildTarget": "flux:build:production"
             },
             "development": {
-              "buildTarget": "flux:build:development"
+              "buildTarget": "flux:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

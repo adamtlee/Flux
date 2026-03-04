@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Flux.Data")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d1c39f2c5682b7ae5023e5b24ab8433581a0a56b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+73e7155025e04f0ed0e39c51a898179af804b0e8")]
 [assembly: System.Reflection.AssemblyProductAttribute("Flux.Data")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Flux.Data")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,0 +1,71 @@
+<div class="accounts-container">
+  <!-- Header Section -->
+  <div class="accounts-header">
+    <h1>Your Bank Accounts</h1>
+    <p>Manage and monitor all your accounts in one place</p>
+  </div>
+
+  <!-- Loading State -->
+  <app-loading *ngIf="loading"></app-loading>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-message">
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="loadAccounts()">
+      Try Again
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && !error">
+    <!-- Total Balance Card -->
+    <div class="total-balance-card">
+      <div class="balance-content">
+        <h3>Total Balance</h3>
+        <p class="balance-amount">{{ formatCurrency(totalBalance) }}</p>
+        <p class="balance-accounts">Across {{ accounts.length }} account{{ accounts.length !== 1 ? 's' : '' }}</p>
+      </div>
+    </div>
+
+    <!-- Accounts List -->
+    <div *ngIf="accounts.length > 0; else noAccounts" class="accounts-list">
+      <div *ngFor="let account of accounts" class="account-card">
+        <div class="account-header">
+          <div class="account-info">
+            <h3>{{ account.accountHolder }}</h3>
+            <p class="account-number">{{ account.accountNumber }}</p>
+          </div>
+          <div class="account-type" [style.backgroundColor]="getAccountTypeColor(account.accountType || '')">
+            {{ account.accountType || 'Unknown' }}
+          </div>
+        </div>
+
+        <div class="account-balance">
+          <span class="balance-label">Account Balance</span>
+          <span class="balance-value">{{ formatCurrency(account.balance) }}</span>
+        </div>
+
+        <div class="account-footer">
+          <div class="account-meta">
+            <div class="meta-item">
+              <span class="meta-label">Created</span>
+              <span class="meta-value">{{ account.createdAt | date: 'short' }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Updated</span>
+              <span class="meta-value">{{ account.updatedAt | date: 'short' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Accounts -->
+    <ng-template #noAccounts>
+      <div class="no-accounts">
+        <p>No bank accounts found</p>
+        <p class="text-secondary">Start by creating your first account</p>
+      </div>
+    </ng-template>
+  </div>
+</div>
