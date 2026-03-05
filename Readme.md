@@ -19,8 +19,8 @@ The solution is divided into two main projects to ensure a clean separation of c
 * **Role**: Manages the database schema, data models, and persistence.
 * **Key Components**:
     * `Models/`: Contains the `BankAccount.cs` domain model.
-    * `BankDbContext.cs`: The Entity Framework context used to interact with the database.
-* **Dependencies**: `Microsoft.EntityFrameworkCore.InMemory`.
+    * `BankDbContext.cs`: The Entity Framework context used to interact with the SQLite database.
+* **Dependencies**: `Microsoft.EntityFrameworkCore.Sqlite`.
 
 
 
@@ -90,5 +90,8 @@ curl -X POST http://localhost:5271/api/bank \
 
 ---
 
-## ⚠️ Important Note
-This project currently uses an In-Memory Database. All data is stored in RAM and will be permanently deleted whenever the application process is stopped or restarted. This is intended for development and testing purposes only.
+## 📦 Database
+
+This project uses **SQLite** for data persistence. The database file (`flux_bank.db`) is automatically created when you first run the application. Data is persisted across application restarts.
+
+---

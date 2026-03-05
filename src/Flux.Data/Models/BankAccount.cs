@@ -2,7 +2,6 @@ namespace Flux.Data.Models;
 
 public class BankAccount
 {
-    // What Id is this exactly? Is it a domain identifier? To be used as a primary key?
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public string Owner { get; set; } = string.Empty;
@@ -13,6 +12,7 @@ public class BankAccount
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
 public enum AccountType

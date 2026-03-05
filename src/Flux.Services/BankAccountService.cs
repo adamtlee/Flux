@@ -29,6 +29,7 @@ public class BankAccountService : IBankAccountService
     public async Task<bool> UpdateAccountAsync(Guid id, BankAccount account)
     {
         if (id != account.Id) return false;
+        account.UpdatedAt = DateTime.UtcNow;
         _context.Entry(account).State = EntityState.Modified;
         await _context.SaveChangesAsync();
         return true;
