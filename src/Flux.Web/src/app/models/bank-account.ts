@@ -1,9 +1,13 @@
 export interface BankAccount {
   id: string;
-  accountNumber: string;
-  accountHolder: string;
+  owner: string;
   balance: number;
-  accountType: string;
-  createdAt: Date;
-  updatedAt: Date;
+  type: AccountType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export enum AccountType {
+  Checking = 0,
+  Savings = 1
 }

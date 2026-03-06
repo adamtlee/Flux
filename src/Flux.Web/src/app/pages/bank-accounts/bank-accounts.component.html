@@ -27,16 +27,78 @@
       </div>
     </div>
 
+    <!-- Create Account Button -->
+    <div class="create-account-section">
+      <button class="btn btn-primary" (click)="toggleCreateForm()">
+        {{ isCreating ? 'Cancel' : 'Create New Account' }}
+      </button>
+    </div>
+
+    <!-- Create Account Form -->
+    <div *ngIf="isCreating" class="create-form-card">
+      <h3>Create New Account</h3>
+      <form (ngSubmit)="createAccount()" #createForm="ngForm">
+        <div class="form-group">
+          <label for="owner">Owner Name</label>
+          <input
+            type="text"
+            id="owner"
+            name="owner"
+            [(ngModel)]="newAccount.owner"
+            required
+            class="form-control"
+            placeholder="Enter account owner name">
+        </div>
+
+        <div class="form-group">
+          <label for="balance">Initial Balance</label>
+          <input
+            type="number"
+            id="balance"
+            name="balance"
+            [(ngModel)]="newAccount.balance"
+            required
+            min="0"
+            step="0.01"
+            class="form-control"
+            placeholder="0.00">
+        </div>
+
+        <div class="form-group">
+          <label for="type">Account Type</label>
+          <select
+            id="type"
+            name="type"
+            [(ngModel)]="newAccount.type"
+            required
+            class="form-control">
+            <option *ngFor="let type of accountTypes" [value]="type.value">
+              {{ type.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-success" [disabled]="!createForm.form.valid">
+            Create Account
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
     <!-- Accounts List -->
     <div *ngIf="accounts.length > 0; else noAccounts" class="accounts-list">
-      <div *ngFor="let account of accounts" class="account-card">
+      <div *ngFor="let account of accounts" class="account-card" (click)="showAccountId(account.id)">
         <div class="account-header">
           <div class="account-info">
-            <h3>{{ account.accountHolder }}</h3>
-            <p class="account-number">{{ account.accountNumber }}</p>
+            <h3>{{ account.owner }}</h3>
+            <p class="account-type-label">{{ account.type }}</p>
           </div>
-          <div class="account-type" [style.backgroundColor]="getAccountTypeColor(account.accountType || '')">
-            {{ account.accountType || 'Unknown' }}
+          <div class="account-type" [style.backgroundColor]="getAccountTypeColor(account.type)">
+            {{ getAccountTypeLabel(account.type) }}
           </div>
         </div>
 
