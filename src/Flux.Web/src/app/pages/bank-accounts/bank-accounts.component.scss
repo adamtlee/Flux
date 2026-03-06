@@ -33,10 +33,6 @@
   p {
     margin-bottom: 1rem;
   }
-
-  .btn {
-    margin-top: 1rem;
-  }
 }
 
 // Total Balance Card
@@ -48,26 +44,24 @@
   margin-bottom: 3rem;
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
 
-  .balance-content {
-    h3 {
-      font-size: 0.9rem;
-      font-weight: 600;
-      opacity: 0.9;
-      margin-bottom: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
+  .balance-content h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
 
-    .balance-amount {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
+  .balance-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
 
-    .balance-accounts {
-      opacity: 0.85;
-      font-size: 0.95rem;
-    }
+  .balance-accounts {
+    opacity: 0.85;
+    font-size: 0.95rem;
   }
 }
 
@@ -79,14 +73,6 @@
   .btn {
     padding: 0.75rem 2rem;
     font-size: 1rem;
-    font-weight: 600;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-    }
   }
 }
 
@@ -137,35 +123,26 @@
     justify-content: flex-end;
     margin-top: 2rem;
 
-    .btn {
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      border-radius: 0.5rem;
-      transition: all 0.3s ease;
+    .btn-success {
+      background: #4caf50;
+      border-color: #4caf50;
 
-      &.btn-success {
-        background: #4caf50;
-        border-color: #4caf50;
-
-        &:hover:not(:disabled) {
-          background: #45a049;
-          transform: translateY(-2px);
-        }
-
-        &:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+      &:hover:not(:disabled) {
+        background: #45a049;
       }
 
-      &.btn-secondary {
-        background: #6c757d;
-        border-color: #6c757d;
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
 
-        &:hover {
-          background: #5a6268;
-          transform: translateY(-2px);
-        }
+    .btn-secondary {
+      background: #6c757d;
+      border-color: #6c757d;
+
+      &:hover {
+        background: #5a6268;
       }
     }
   }
@@ -202,10 +179,6 @@
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid #f0f0f0;
-}
-
-.account-info {
-  flex: 1;
 
   h3 {
     font-size: 1.25rem;
@@ -230,7 +203,6 @@
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: capitalize;
-  white-space: nowrap;
 }
 
 .account-balance {
@@ -255,29 +227,27 @@
   }
 }
 
-.account-footer {
-  .account-meta {
-    display: flex;
-    gap: 2rem;
+.account-footer .account-meta {
+  display: flex;
+  gap: 2rem;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+
+  .meta-label {
+    font-size: 0.8rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
   }
 
-  .meta-item {
-    display: flex;
-    flex-direction: column;
-
-    .meta-label {
-      font-size: 0.8rem;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-
-    .meta-value {
-      color: #1a1a1a;
-      font-size: 0.95rem;
-    }
+  .meta-value {
+    color: #1a1a1a;
+    font-size: 0.95rem;
   }
 }
 
@@ -321,6 +291,3 @@
   }
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}

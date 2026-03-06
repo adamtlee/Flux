@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { isPlatformBrowser } from '@angular/common';
 import { LoadingComponent } from '../../components/loading/loading.component';
 import { BankAccountService } from '../../services/bank-account.service';
 import { BankAccount, AccountType } from '../../models/bank-account';
@@ -30,10 +31,17 @@ export class BankAccountsComponent implements OnInit {
     { value: AccountType.Savings, label: 'Savings' }
   ];
 
+  private platformId = inject(PLATFORM_ID);
+
   constructor(private bankAccountService: BankAccountService) { }
 
   ngOnInit(): void {
-    this.loadAccounts();
+    // Only load accounts on the browser, not during server-side rendering/prerendering
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadAccounts();
+    } else {
+      this.loading = false;
+    }
   }
 
   loadAccounts(): void {
