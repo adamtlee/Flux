@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
 import { LoadingComponent } from '../../components/loading/loading.component';
-import { BankAccountService } from '../../services/bank-account.service';
+import { BankAccountService, CreateBankAccountRequest } from '../../services/bank-account.service';
 import { BankAccount, AccountType } from '../../models/bank-account';
 
 @Component({
@@ -82,13 +82,11 @@ export class BankAccountsComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    const accountToCreate = {
+    const accountToCreate: CreateBankAccountRequest = {
       owner: this.newAccount.owner!,
       balance: this.newAccount.balance!,
-      type: this.newAccount.type!,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    } as BankAccount;
+      type: Number(this.newAccount.type!)
+    };
 
     this.bankAccountService.createAccount(accountToCreate).subscribe({
       next: (createdAccount) => {

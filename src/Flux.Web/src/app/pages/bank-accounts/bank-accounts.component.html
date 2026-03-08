@@ -72,7 +72,7 @@
             [(ngModel)]="newAccount.type"
             required
             class="form-control">
-            <option *ngFor="let type of accountTypes" [value]="type.value">
+            <option *ngFor="let type of accountTypes" [ngValue]="type.value">
               {{ type.label }}
             </option>
           </select>

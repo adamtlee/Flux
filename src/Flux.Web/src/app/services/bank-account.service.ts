@@ -3,6 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { BankAccount } from '../models/bank-account';
 
+export interface CreateBankAccountRequest {
+  owner: string;
+  balance: number;
+  type: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -19,7 +25,7 @@ export class BankAccountService {
     return this.http.get<BankAccount>(`${this.apiUrl}/${id}`);
   }
 
-  createAccount(account: BankAccount): Observable<BankAccount> {
+  createAccount(account: CreateBankAccountRequest): Observable<BankAccount> {
     return this.http.post<BankAccount>(this.apiUrl, account);
   }
 
