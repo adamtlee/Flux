@@ -24,6 +24,80 @@
   transform: translateY(-2px);
 }
 
+/* Form controls and action buttons to match app styles */
+.form-group {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+
+  .btn-success {
+    background: #4caf50;
+    border-color: #4caf50;
+
+    &:hover:not(:disabled) {
+      background: #45a049;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-secondary {
+    background: #6c757d;
+    border-color: #6c757d;
+
+    &:hover {
+      background: #5a6268;
+    }
+  }
+}
+
+/* Danger variant for delete */
+.btn-danger {
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+  color: #fff;
+  border-radius: 0.5rem;
+  border: none;
+  box-shadow: 0 6px 16px rgba(229, 57, 53, 0.12);
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+}
+
+/* Buttons are defined globally in src/styles.scss */
+
 /* Use shared account card styles from list for consistent look */
 .account-card {
   background: white;

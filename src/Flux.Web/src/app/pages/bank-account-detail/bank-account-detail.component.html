@@ -12,25 +12,55 @@
         <h3>{{ account.owner }}</h3>
         <div class="account-number">ID: {{ account.id }}</div>
       </div>
-      <div class="account-type">{{ getAccountTypeLabel(account.type) }}</div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <button class="btn" *ngIf="!editMode" (click)="enableEdit()">Edit</button>
+        <button class="btn btn-danger" (click)="deleteAccount()">Delete</button>
+        <div class="account-type" style="margin-left:0.5rem;">{{ getAccountTypeLabel(account.type) }}</div>
+      </div>
     </div>
 
-    <div class="account-balance">
-      <div class="balance-label">Account Balance</div>
-      <div class="balance-value">{{ account.balance | currency:'USD' }}</div>
-    </div>
+    <div *ngIf="!editMode">
+      <div class="account-balance">
+        <div class="balance-label">Account Balance</div>
+        <div class="balance-value">{{ account.balance | currency:'USD' }}</div>
+      </div>
 
-    <div class="account-footer">
-      <div class="account-meta">
-        <div class="meta-item">
-          <div class="meta-label">Created</div>
-          <div class="meta-value">{{ account.createdAt | date:'short' }}</div>
-        </div>
-        <div class="meta-item">
-          <div class="meta-label">Updated</div>
-          <div class="meta-value">{{ account.updatedAt | date:'short' }}</div>
+      <div class="account-footer">
+        <div class="account-meta">
+          <div class="meta-item">
+            <div class="meta-label">Created</div>
+            <div class="meta-value">{{ account.createdAt | date:'short' }}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">Updated</div>
+            <div class="meta-value">{{ account.updatedAt | date:'short' }}</div>
+          </div>
         </div>
       </div>
     </div>
+
+    <form *ngIf="editMode && form" [formGroup]="form" (ngSubmit)="saveEdit()">
+      <div class="form-group">
+        <label>Owner</label>
+        <input class="form-control" formControlName="owner" />
+      </div>
+
+      <div class="form-group">
+        <label>Balance</label>
+        <input type="number" class="form-control" formControlName="balance" step="0.01" />
+      </div>
+
+      <div class="form-group">
+        <label>Type</label>
+        <select class="form-control" formControlName="type">
+          <option *ngFor="let t of [{value:0,label:'Checking'},{value:1,label:'Savings'}]" [ngValue]="t.value">{{ t.label }}</option>
+        </select>
+      </div>
+
+      <div class="form-actions" style="justify-content:flex-end;">
+        <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
+        <button type="submit" class="btn btn-success" [disabled]="form.invalid">Save</button>
+      </div>
+    </form>
   </div>
 </div>

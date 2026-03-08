@@ -43,3 +43,51 @@ app-root {
     background: #555;
   }
 }
+
+/* Shared button styles used across the app */
+.btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-block;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #333;
+  border: 2px solid #e0e0e0;
+}
+
+.btn-success {
+  background: #4caf50;
+  color: white;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+  color: white;
+}
+
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+}
