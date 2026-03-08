@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
 import { LoadingComponent } from '../../components/loading/loading.component';
 import { BankAccountService, CreateBankAccountRequest } from '../../services/bank-account.service';
+import { Router } from '@angular/router';
 import { BankAccount, AccountType } from '../../models/bank-account';
 
 @Component({
@@ -33,7 +34,7 @@ export class BankAccountsComponent implements OnInit {
 
   private platformId = inject(PLATFORM_ID);
 
-  constructor(private bankAccountService: BankAccountService) { }
+  constructor(private bankAccountService: BankAccountService, private router: Router) { }
 
   ngOnInit(): void {
     // Only load accounts on the browser, not during server-side rendering/prerendering
@@ -113,7 +114,7 @@ export class BankAccountsComponent implements OnInit {
   }
 
   showAccountId(id: string): void {
-    alert(`Account ID: ${id}`);
+    this.router.navigate(['/accounts', id]);
   }
 
   formatCurrency(value: number): string {
