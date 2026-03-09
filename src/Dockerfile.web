@@ -1,0 +1,23 @@
+# Build stage for Angular app
+FROM node:20 AS build
+WORKDIR /app
+
+# Copy only package files first for cached installs
+COPY Flux.Web/package.json Flux.Web/package-lock.json* ./Flux.Web/
+WORKDIR /app/Flux.Web
+RUN npm install
+
+# Copy the rest of the frontend sources
+WORKDIR /app
+COPY Flux.Web ./Flux.Web
+WORKDIR /app/Flux.Web
+RUN npm run build -- --configuration production
+
+# Nginx stage to serve built files
+FROM nginx:stable-alpine AS runtime
+COPY --from=build /app/Flux.Web/dist/flux /usr/share/nginx/html
+# SPA fallback
+RUN rm /etc/nginx/conf.d/default.conf
+COPY Flux.Web/nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

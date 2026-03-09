@@ -1,0 +1,59 @@
+# Multi-service single-container Dockerfile
+# Builds the .NET API and Angular app, then runs both (dotnet + nginx) in one image.
+
+# --- Build API ---
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-api
+WORKDIR /src
+COPY . .
+WORKDIR /src/Flux.Api
+RUN dotnet restore "Flux.Api.csproj"
+RUN dotnet publish "Flux.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# --- Build Web ---
+FROM node:20 AS build-web
+WORKDIR /app
+COPY Flux.Web/package.json Flux.Web/package-lock.json* ./Flux.Web/
+WORKDIR /app/Flux.Web
+RUN npm install --legacy-peer-deps
+WORKDIR /app
+COPY Flux.Web ./Flux.Web
+WORKDIR /app/Flux.Web
+RUN npm run build -- --configuration production
+
+# --- Final runtime image ---
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+
+# Install nginx, supervisor and curl
+RUN apt-get update \
+  && apt-get install -y nginx supervisor ca-certificates curl \
+  && rm -rf /var/lib/apt/lists/*
+
+# Create app directory and copy API publish
+WORKDIR /app
+COPY --from=build-api /app/publish ./
+
+# Copy built frontend into nginx www root
+RUN rm -rf /var/www/html/*
+COPY --from=build-web /app/Flux.Web/dist/flux /var/www/html
+
+# Copy nginx config for SPA + proxy to local API
+COPY Flux.Web/nginx.multi.conf /etc/nginx/conf.d/default.conf
+
+# Add supervisord config
+COPY Flux.Web/supervisord.conf /etc/supervisor/conf.d/flux.conf
+
+# Ensure data directory exists for SQLite
+RUN mkdir -p /app/data
+
+# Environment defaults
+ENV ASPNETCORE_URLS=http://+:5000
+ENV ConnectionStrings__DefaultConnection="Data Source=/app/data/bank.db"
+
+EXPOSE 80
+
+# Healthcheck: ensure API returns 200 on accounts endpoint
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://127.0.0.1:5000/api/bankaccounts || exit 1
+
+# Start supervisord which will run both the API and nginx
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
