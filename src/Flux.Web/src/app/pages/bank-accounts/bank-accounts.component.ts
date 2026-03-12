@@ -19,6 +19,7 @@ export class BankAccountsComponent implements OnInit {
   loading = true;
   error: string | null = null;
   totalBalance = 0;
+  totalCreditCardAmount = 0;
   isCreating = false;
 
   newAccount: Partial<BankAccount> = {
@@ -29,7 +30,8 @@ export class BankAccountsComponent implements OnInit {
 
   accountTypes = [
     { value: AccountType.Checking, label: 'Checking' },
-    { value: AccountType.Savings, label: 'Savings' }
+    { value: AccountType.Savings, label: 'Savings' },
+    { value: AccountType.CreditCard, label: 'Credit Card' }
   ];
 
   private platformId = inject(PLATFORM_ID);
@@ -64,7 +66,15 @@ export class BankAccountsComponent implements OnInit {
   }
 
   calculateTotalBalance(): void {
-    this.totalBalance = this.accounts.reduce((sum, account) => sum + account.balance, 0);
+    this.totalCreditCardAmount = this.accounts
+      .filter((account) => account.type === AccountType.CreditCard)
+      .reduce((sum, account) => sum + account.balance, 0);
+
+    const nonCreditCardTotal = this.accounts
+      .filter((account) => account.type !== AccountType.CreditCard)
+      .reduce((sum, account) => sum + account.balance, 0);
+
+    this.totalBalance = nonCreditCardTotal - this.totalCreditCardAmount;
   }
 
   toggleCreateForm(): void {
@@ -131,7 +141,8 @@ export class BankAccountsComponent implements OnInit {
   getAccountTypeColor(type: AccountType): string {
     const colors: { [key: number]: string } = {
       [AccountType.Checking]: '#2196f3',
-      [AccountType.Savings]: '#4caf50'
+      [AccountType.Savings]: '#4caf50',
+      [AccountType.CreditCard]: '#f44336'
     };
     return colors[type] || '#9c27b0';
   }

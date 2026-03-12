@@ -9,5 +9,6 @@ export interface BankAccount {
 
 export enum AccountType {
   Checking = 0,
-  Savings = 1
+  Savings = 1,
+  CreditCard = 2
 }

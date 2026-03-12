@@ -18,7 +18,8 @@ public class BankAccount
 public enum AccountType
 {
     Checking,
-    Savings
+    Savings,
+    CreditCard
 }
 
 // What other properties would you add here?

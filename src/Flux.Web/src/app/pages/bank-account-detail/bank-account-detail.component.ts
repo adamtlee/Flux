@@ -122,6 +122,15 @@ export class BankAccountDetailComponent implements OnInit {
   }
 
   getAccountTypeLabel(type: AccountType): string {
-    return type === AccountType.Checking ? 'Checking' : 'Savings';
+    switch (type) {
+      case AccountType.Checking:
+        return 'Checking';
+      case AccountType.Savings:
+        return 'Savings';
+      case AccountType.CreditCard:
+        return 'Credit Card';
+      default:
+        return 'Unknown';
+    }
   }
 }

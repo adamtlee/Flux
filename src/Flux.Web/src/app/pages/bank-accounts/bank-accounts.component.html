@@ -23,6 +23,7 @@
       <div class="balance-content">
         <h3>Total Balance</h3>
         <p class="balance-amount">{{ formatCurrency(totalBalance) }}</p>
+        <p class="balance-accounts">Credit Card Total: {{ formatCurrency(totalCreditCardAmount) }}</p>
         <p class="balance-accounts">Across {{ accounts.length }} account{{ accounts.length !== 1 ? 's' : '' }}</p>
       </div>
     </div>
@@ -95,7 +96,7 @@
         <div class="account-header">
           <div class="account-info">
             <h3>{{ account.owner }}</h3>
-            <p class="account-type-label">{{ account.type }}</p>
+            <p class="account-type-label">{{ getAccountTypeLabel(account.type) }}</p>
           </div>
           <div class="account-type" [style.backgroundColor]="getAccountTypeColor(account.type)">
             {{ getAccountTypeLabel(account.type) }}
