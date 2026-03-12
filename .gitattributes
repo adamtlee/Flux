@@ -1,0 +1,14 @@
+* text=auto eol=lf
+
+# Keep common binaries untouched
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.dll binary
+*.pdb binary
+*.so binary
+*.dylib binary
+*.exe binary

@@ -1,0 +1,12 @@
+# .NET build artifacts
+**/bin/
+**/obj/
+
+# Visual Studio / VS Code user files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Logs
+*.log
