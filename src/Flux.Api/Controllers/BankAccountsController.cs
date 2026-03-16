@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Flux.Data.Models;
 using Flux.Services;
 
@@ -9,6 +10,7 @@ namespace Flux.Api.Controllers;
 /// Provides CRUD operations for bank account resources.
 /// </summary>
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 [Produces("application/json")]
 public class BankAccountsController : ControllerBase

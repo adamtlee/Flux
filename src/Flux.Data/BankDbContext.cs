@@ -8,4 +8,18 @@ public class BankDbContext : DbContext
     public BankDbContext(DbContextOptions<BankDbContext> options) : base(options) { }
 
     public DbSet<BankAccount> Accounts { get; set; }
+    public DbSet<UserAccount> UserAccounts { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<UserAccount>()
+            .HasIndex(user => user.Username)
+            .IsUnique();
+
+        modelBuilder.Entity<UserAccount>()
+            .Property(user => user.Username)
+            .HasMaxLength(100);
+    }
 }

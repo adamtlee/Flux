@@ -95,3 +95,41 @@ curl -X POST http://localhost:5271/api/bank \
 This project uses **SQLite** for data persistence. The database file (`flux_bank.db`) is automatically created when you first run the application. Data is persisted across application restarts.
 
 ---
+
+## 🔐 JWT Auth (Local API)
+
+The API is secured with `Microsoft.AspNetCore.Authentication.JwtBearer`.
+
+```bash
+# Set credentials in env vars (no hardcoded secrets in commands)
+export API_USERNAME="${API_USERNAME:?set API_USERNAME}"
+export API_PASSWORD="${API_PASSWORD:?set API_PASSWORD}"
+```
+
+```bash
+# 1) Register a user
+curl -s -X POST http://localhost:5271/api/auth/register \
+    -H 'Content-Type: application/json' \
+    -d "{\"username\":\"$API_USERNAME\",\"password\":\"$API_PASSWORD\"}"
+```
+
+```bash
+# 2) Login and extract token (macOS/Linux zsh/bash)
+TOKEN=$(curl -s -X POST http://localhost:5271/api/auth/login \
+    -H 'Content-Type: application/json' \
+    -d "{\"username\":\"$API_USERNAME\",\"password\":\"$API_PASSWORD\"}" \
+    | sed -n 's/.*"accessToken":"\([^"]*\)".*/\1/p')
+
+echo "TOKEN length: ${#TOKEN}"
+```
+
+```bash
+# 3) Call protected endpoint
+curl -s http://localhost:5271/api/bankaccounts \
+    -H "Authorization: Bearer $TOKEN"
+```
+
+```bash
+# Optional: verify unauthorized request returns 401
+curl -s -o /dev/null -w "%{http_code}" http://localhost:5271/api/bankaccounts
+```
