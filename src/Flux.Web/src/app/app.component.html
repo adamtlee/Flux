@@ -8,9 +8,26 @@
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
         Home
       </a>
-      <a routerLink="/accounts" routerLinkActive="active" class="nav-link">
+      <a routerLink="/accounts" routerLinkActive="active" class="nav-link" *ngIf="isAuthenticated$ | async">
         Accounts
       </a>
+      <div class="nav-auth">
+        <span class="current-user" *ngIf="currentUser$ | async as user">
+          Welcome, {{ user }}
+        </span>
+        <button 
+          *ngIf="isAuthenticated$ | async" 
+          (click)="logout()" 
+          class="btn btn-logout">
+          Sign Out
+        </button>
+        <a 
+          *ngIf="!(isAuthenticated$ | async)" 
+          routerLink="/login" 
+          class="btn btn-login">
+          Sign In
+        </a>
+      </div>
     </div>
   </div>
 </nav>

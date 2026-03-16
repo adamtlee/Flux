@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -10,4 +11,14 @@ import { CommonModule } from '@angular/common';
 })
 export class AppComponent {
   title = 'Flux';
+  authService = inject(AuthService);
+  private router = inject(Router);
+
+  isAuthenticated$ = this.authService.isAuthenticated$;
+  currentUser$ = this.authService.currentUser$;
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/']);
+  }
 }
