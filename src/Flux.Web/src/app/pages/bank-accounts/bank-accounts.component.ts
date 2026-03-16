@@ -7,6 +7,17 @@ import { BankAccountService, CreateBankAccountRequest } from '../../services/ban
 import { Router } from '@angular/router';
 import { BankAccount, AccountType } from '../../models/bank-account';
 
+type AccountsTab = 'accounts' | 'insights';
+
+interface AccountTypeInsight {
+  type: AccountType;
+  label: string;
+  count: number;
+  balanceTotal: number;
+  percentage: number;
+  color: string;
+}
+
 @Component({
   selector: 'app-bank-accounts',
   standalone: true,
@@ -18,8 +29,16 @@ export class BankAccountsComponent implements OnInit {
   accounts: BankAccount[] = [];
   loading = true;
   error: string | null = null;
+  activeTab: AccountsTab = 'accounts';
+
   totalBalance = 0;
+  totalAssetAmount = 0;
   totalCreditCardAmount = 0;
+  averageAccountBalance = 0;
+
+  largestAccount: BankAccount | null = null;
+  accountTypeInsights: AccountTypeInsight[] = [];
+
   isCreating = false;
 
   newAccount: Partial<BankAccount> = {
@@ -55,6 +74,7 @@ export class BankAccountsComponent implements OnInit {
       next: (data) => {
         this.accounts = data;
         this.calculateTotalBalance();
+        this.refreshInsights();
         this.loading = false;
       },
       error: (err) => {
@@ -70,11 +90,43 @@ export class BankAccountsComponent implements OnInit {
       .filter((account) => account.type === AccountType.CreditCard)
       .reduce((sum, account) => sum + account.balance, 0);
 
-    const nonCreditCardTotal = this.accounts
+    this.totalAssetAmount = this.accounts
       .filter((account) => account.type !== AccountType.CreditCard)
       .reduce((sum, account) => sum + account.balance, 0);
 
-    this.totalBalance = nonCreditCardTotal - this.totalCreditCardAmount;
+    this.totalBalance = this.totalAssetAmount - this.totalCreditCardAmount;
+
+    const totalRawBalance = this.accounts.reduce((sum, account) => sum + account.balance, 0);
+    this.averageAccountBalance = this.accounts.length > 0 ? totalRawBalance / this.accounts.length : 0;
+
+    this.largestAccount = this.accounts.length > 0
+      ? this.accounts.reduce((largest, current) => current.balance > largest.balance ? current : largest)
+      : null;
+  }
+
+  refreshInsights(): void {
+    const absoluteTotal = this.accounts.reduce((sum, account) => sum + Math.abs(account.balance), 0);
+
+    this.accountTypeInsights = this.accountTypes.map((accountType) => {
+      const matchingAccounts = this.accounts.filter((account) => account.type === accountType.value);
+      const balanceTotal = matchingAccounts.reduce((sum, account) => sum + account.balance, 0);
+      const percentage = absoluteTotal > 0
+        ? (Math.abs(balanceTotal) / absoluteTotal) * 100
+        : 0;
+
+      return {
+        type: accountType.value,
+        label: accountType.label,
+        count: matchingAccounts.length,
+        balanceTotal,
+        percentage,
+        color: this.getAccountTypeColor(accountType.value)
+      };
+    });
+  }
+
+  setActiveTab(tab: AccountsTab): void {
+    this.activeTab = tab;
   }
 
   toggleCreateForm(): void {
@@ -103,6 +155,7 @@ export class BankAccountsComponent implements OnInit {
       next: (createdAccount) => {
         this.accounts.push(createdAccount);
         this.calculateTotalBalance();
+        this.refreshInsights();
         this.loading = false;
         this.isCreating = false;
         this.resetForm();

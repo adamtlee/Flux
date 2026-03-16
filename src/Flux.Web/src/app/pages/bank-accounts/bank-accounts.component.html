@@ -1,14 +1,11 @@
 <div class="accounts-container">
-  <!-- Header Section -->
   <div class="accounts-header">
     <h1>Your Bank Accounts</h1>
     <p>Manage and monitor all your accounts in one place</p>
   </div>
 
-  <!-- Loading State -->
   <app-loading *ngIf="loading"></app-loading>
 
-  <!-- Error State -->
   <div *ngIf="error && !loading" class="error-message">
     <p>{{ error }}</p>
     <button class="btn btn-primary" (click)="loadAccounts()">
@@ -16,119 +13,197 @@
     </button>
   </div>
 
-  <!-- Content -->
   <div *ngIf="!loading && !error">
-    <!-- Total Balance Card -->
-    <div class="total-balance-card">
-      <div class="balance-content">
-        <h3>Total Balance</h3>
-        <p class="balance-amount">{{ formatCurrency(totalBalance) }}</p>
-        <p class="balance-accounts">Credit Card Total: {{ formatCurrency(totalCreditCardAmount) }}</p>
-        <p class="balance-accounts">Across {{ accounts.length }} account{{ accounts.length !== 1 ? 's' : '' }}</p>
-      </div>
-    </div>
-
-    <!-- Create Account Button -->
-    <div class="create-account-section">
-      <button class="btn btn-primary" (click)="toggleCreateForm()">
-        {{ isCreating ? 'Cancel' : 'Create New Account' }}
+    <div class="tabs" role="tablist" aria-label="Bank accounts tabs">
+      <button
+        type="button"
+        class="tab-btn"
+        role="tab"
+        [class.active]="activeTab === 'accounts'"
+        [attr.aria-selected]="activeTab === 'accounts'"
+        (click)="setActiveTab('accounts')">
+        Accounts
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        role="tab"
+        [class.active]="activeTab === 'insights'"
+        [attr.aria-selected]="activeTab === 'insights'"
+        (click)="setActiveTab('insights')">
+        Chart & Summary
       </button>
     </div>
 
-    <!-- Create Account Form -->
-    <div *ngIf="isCreating" class="create-form-card">
-      <h3>Create New Account</h3>
-      <form (ngSubmit)="createAccount()" #createForm="ngForm">
-        <div class="form-group">
-          <label for="owner">Owner Name</label>
-          <input
-            type="text"
-            id="owner"
-            name="owner"
-            [(ngModel)]="newAccount.owner"
-            required
-            class="form-control"
-            placeholder="Enter account owner name">
+    <div *ngIf="activeTab === 'accounts'">
+      <div class="total-balance-card">
+        <div class="balance-content">
+          <h3>Total Balance</h3>
+          <p class="balance-amount">{{ formatCurrency(totalBalance) }}</p>
+          <p class="balance-accounts">Credit Card Total: {{ formatCurrency(totalCreditCardAmount) }}</p>
+          <p class="balance-accounts">Across {{ accounts.length }} account{{ accounts.length !== 1 ? 's' : '' }}</p>
         </div>
+      </div>
 
-        <div class="form-group">
-          <label for="balance">Initial Balance</label>
-          <input
-            type="number"
-            id="balance"
-            name="balance"
-            [(ngModel)]="newAccount.balance"
-            required
-            min="0"
-            step="0.01"
-            class="form-control"
-            placeholder="0.00">
-        </div>
+      <div class="create-account-section">
+        <button class="btn btn-primary" (click)="toggleCreateForm()">
+          {{ isCreating ? 'Cancel' : 'Create New Account' }}
+        </button>
+      </div>
 
-        <div class="form-group">
-          <label for="type">Account Type</label>
-          <select
-            id="type"
-            name="type"
-            [(ngModel)]="newAccount.type"
-            required
-            class="form-control">
-            <option *ngFor="let type of accountTypes" [ngValue]="type.value">
-              {{ type.label }}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn btn-success" [disabled]="!createForm.form.valid">
-            Create Account
-          </button>
-          <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-
-    <!-- Accounts List -->
-    <div *ngIf="accounts.length > 0; else noAccounts" class="accounts-list">
-      <div *ngFor="let account of accounts" class="account-card" (click)="showAccountId(account.id)">
-        <div class="account-header">
-          <div class="account-info">
-            <h3>{{ account.owner }}</h3>
-            <p class="account-type-label">{{ getAccountTypeLabel(account.type) }}</p>
+      <div *ngIf="isCreating" class="create-form-card">
+        <h3>Create New Account</h3>
+        <form (ngSubmit)="createAccount()" #createForm="ngForm">
+          <div class="form-group">
+            <label for="owner">Owner Name</label>
+            <input
+              type="text"
+              id="owner"
+              name="owner"
+              [(ngModel)]="newAccount.owner"
+              required
+              class="form-control"
+              placeholder="Enter account owner name">
           </div>
-          <div class="account-type" [style.backgroundColor]="getAccountTypeColor(account.type)">
-            {{ getAccountTypeLabel(account.type) }}
+
+          <div class="form-group">
+            <label for="balance">Initial Balance</label>
+            <input
+              type="number"
+              id="balance"
+              name="balance"
+              [(ngModel)]="newAccount.balance"
+              required
+              min="0"
+              step="0.01"
+              class="form-control"
+              placeholder="0.00">
           </div>
-        </div>
 
-        <div class="account-balance">
-          <span class="balance-label">Account Balance</span>
-          <span class="balance-value">{{ formatCurrency(account.balance) }}</span>
-        </div>
+          <div class="form-group">
+            <label for="type">Account Type</label>
+            <select
+              id="type"
+              name="type"
+              [(ngModel)]="newAccount.type"
+              required
+              class="form-control">
+              <option *ngFor="let type of accountTypes" [ngValue]="type.value">
+                {{ type.label }}
+              </option>
+            </select>
+          </div>
 
-        <div class="account-footer">
-          <div class="account-meta">
-            <div class="meta-item">
-              <span class="meta-label">Created</span>
-              <span class="meta-value">{{ account.createdAt | date: 'short' }}</span>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-success" [disabled]="!createForm.form.valid">
+              Create Account
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div *ngIf="accounts.length > 0; else noAccounts" class="accounts-list">
+        <div *ngFor="let account of accounts" class="account-card" (click)="showAccountId(account.id)">
+          <div class="account-header">
+            <div class="account-info">
+              <h3>{{ account.owner }}</h3>
+              <p class="account-type-label">{{ getAccountTypeLabel(account.type) }}</p>
             </div>
-            <div class="meta-item">
-              <span class="meta-label">Updated</span>
-              <span class="meta-value">{{ account.updatedAt | date: 'short' }}</span>
+            <div class="account-type" [style.backgroundColor]="getAccountTypeColor(account.type)">
+              {{ getAccountTypeLabel(account.type) }}
+            </div>
+          </div>
+
+          <div class="account-balance">
+            <span class="balance-label">Account Balance</span>
+            <span class="balance-value">{{ formatCurrency(account.balance) }}</span>
+          </div>
+
+          <div class="account-footer">
+            <div class="account-meta">
+              <div class="meta-item">
+                <span class="meta-label">Created</span>
+                <span class="meta-value">{{ account.createdAt | date: 'short' }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">Updated</span>
+                <span class="meta-value">{{ account.updatedAt | date: 'short' }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <ng-template #noAccounts>
+        <div class="no-accounts">
+          <p>No bank accounts found</p>
+          <p class="text-secondary">Start by creating your first account</p>
+        </div>
+      </ng-template>
     </div>
 
-    <!-- No Accounts -->
-    <ng-template #noAccounts>
-      <div class="no-accounts">
-        <p>No bank accounts found</p>
-        <p class="text-secondary">Start by creating your first account</p>
+    <div *ngIf="activeTab === 'insights'" class="insights-tab">
+      <div class="summary-grid">
+        <div class="summary-card">
+          <p class="summary-label">Net Balance</p>
+          <p class="summary-value">{{ formatCurrency(totalBalance) }}</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Total Assets</p>
+          <p class="summary-value">{{ formatCurrency(totalAssetAmount) }}</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Total Credit Card Amount</p>
+          <p class="summary-value">{{ formatCurrency(totalCreditCardAmount) }}</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Average Account Balance</p>
+          <p class="summary-value">{{ formatCurrency(averageAccountBalance) }}</p>
+        </div>
       </div>
-    </ng-template>
+
+      <div class="chart-card" *ngIf="accounts.length > 0; else noInsights">
+        <h3>Balance by Account Type</h3>
+        <div class="bar-chart">
+          <div class="bar-row" *ngFor="let insight of accountTypeInsights">
+            <div class="bar-header">
+              <div class="bar-title-group">
+                <span class="bar-title">{{ insight.label }}</span>
+                <span class="bar-count">{{ insight.count }} account{{ insight.count !== 1 ? 's' : '' }}</span>
+              </div>
+              <span class="bar-value">{{ formatCurrency(insight.balanceTotal) }}</span>
+            </div>
+
+            <div class="bar-track" [attr.aria-label]="insight.label + ' distribution'">
+              <div
+                class="bar-fill"
+                [style.width.%]="insight.percentage"
+                [style.backgroundColor]="insight.color">
+              </div>
+            </div>
+
+            <p class="bar-percent">{{ insight.percentage | number: '1.0-1' }}%</p>
+          </div>
+        </div>
+
+        <div class="largest-account" *ngIf="largestAccount">
+          <p>
+            Largest account is
+            <strong>{{ largestAccount.owner }}</strong>
+            with {{ formatCurrency(largestAccount.balance) }}.
+          </p>
+        </div>
+      </div>
+
+      <ng-template #noInsights>
+        <div class="no-accounts">
+          <p>No data available for charting yet</p>
+          <p class="text-secondary">Create an account to see summary insights</p>
+        </div>
+      </ng-template>
+    </div>
   </div>
 </div>
