@@ -25,6 +25,27 @@ Notes
 - The single-container approach is convenient for testing and small deployments, but for production the `docker-compose.yml` (or separate containers) is recommended for better isolation and scaling.
 - The image includes a Docker `HEALTHCHECK` which polls the API's `/api/bankaccounts` endpoint.
 
+## API endpoints
+
+> All `/api/bankaccounts` endpoints require `Authorization: Bearer <token>`.
+
+### Auth (`/api/auth`)
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **POST** | `/api/auth/register` | Register a new user and return JWT token response |
+| **POST** | `/api/auth/login` | Authenticate an existing user and return JWT token response |
+
+### Bank accounts (`/api/bankaccounts`)
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/api/bankaccounts` | Retrieve all bank accounts |
+| **GET** | `/api/bankaccounts/{id}` | Retrieve a specific account by GUID |
+| **POST** | `/api/bankaccounts` | Create a new bank account |
+| **PUT** | `/api/bankaccounts/{id}` | Update an existing bank account |
+| **DELETE** | `/api/bankaccounts/{id}` | Delete a bank account |
+
 ## JWT auth (local API)
 
 The API is secured with `Microsoft.AspNetCore.Authentication.JwtBearer`.

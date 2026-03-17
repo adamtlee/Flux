@@ -66,25 +66,36 @@ This project uses **Scalar** for modern, interactive API documentation. Once the
 
 ---
 
-## 🛠 CRUD Operations
+## 🛠 API Endpoints
+
+> All `/api/bankaccounts` endpoints require `Authorization: Bearer <token>`.
+
+### Auth (`/api/auth`)
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/api/bank` | Retrieve all bank accounts |
-| **GET** | `/api/bank/{id}` | Retrieve a specific account by GUID |
-| **POST** | `/api/bank` | Create a new bank account |
-| **PUT** | `/api/bank/{id}` | Update an entire account record |
-| **PATCH** | `/api/bank/{id}/update-balance` | Partially update only the account balance |
-| **DELETE** | `/api/bank/{id}` | Remove an account from the system |
+| **POST** | `/api/auth/register` | Register a new user and return JWT token response |
+| **POST** | `/api/auth/login` | Authenticate an existing user and return JWT token response |
 
-### Example Create Request (cURL)
+### Bank Accounts (`/api/bankaccounts`)
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/api/bankaccounts` | Retrieve all bank accounts |
+| **GET** | `/api/bankaccounts/{id}` | Retrieve a specific account by GUID |
+| **POST** | `/api/bankaccounts` | Create a new bank account |
+| **PUT** | `/api/bankaccounts/{id}` | Update an existing bank account |
+| **DELETE** | `/api/bankaccounts/{id}` | Delete a bank account |
+
+### Example Create Account Request (cURL)
 ```bash
-curl -X POST http://localhost:5271/api/bank \
+curl -X POST http://localhost:5271/api/bankaccounts \
+-H "Authorization: Bearer $TOKEN" \
 -H "Content-Type: application/json" \
 -d '{
-  "owner": "Adam Lee",
-  "balance": 1000.00,
-  "accountType": "Checking"
+    "owner": "Adam Lee",
+    "balance": 1000.00,
+    "type": "Checking"
 }'
 ```
 
