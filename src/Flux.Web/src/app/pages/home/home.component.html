@@ -1,41 +1,61 @@
 <div class="home-container">
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="hero-content">
+  <div class="background-design" aria-hidden="true">
+    <div class="pattern-grid"></div>
+    <div class="pattern-dots"></div>
+    <div class="pattern-beams pattern-beams-left"></div>
+    <div class="pattern-beams pattern-beams-right"></div>
+    <div class="pattern-ring pattern-ring-top"></div>
+    <div class="pattern-ring pattern-ring-bottom"></div>
+  </div>
+
+  <section class="hero-shell">
+    <div class="hero-copy-block">
+      <span class="eyebrow">Personal finance, on your terms</span>
+
       <h1>Welcome to Flux</h1>
-      <p>Your Personal Financial Management Platform</p>
+
+      <p class="hero-copy">
+        A simpler way to manage accounts, review activity, and keep control of your financial data.
+      </p>
+
       <div class="hero-buttons">
         <button class="btn btn-primary" routerLink="/accounts">
           View Accounts
         </button>
-        <button class="btn btn-secondary">
-          Learn More
-        </button>
+      </div>
+
+      <div class="hero-notes">
+        <span>Account Management</span>
+        <span>Transaction Tracking</span>
+        <span>Analytics &amp; Insights</span>
+        <span>Own Your Data</span>
       </div>
     </div>
-    <div class="hero-visual">
-      <div class="gradient-circle"></div>
-    </div>
-  </section>
 
-  <!-- Features Section -->
-  <section class="features">
-    <h2>Why Choose Flux?</h2>
-    <div class="features-grid">
-      <div *ngFor="let feature of features" class="feature-card">
-        <div class="feature-icon">{{ feature.icon }}</div>
-        <h3>{{ feature.title }}</h3>
-        <p>{{ feature.description }}</p>
+    <div class="hero-panel">
+      <div class="panel-toolbar">
+        <span class="toolbar-dot"></span>
+        <span class="toolbar-dot"></span>
+        <span class="toolbar-dot"></span>
+      </div>
+
+      <div class="panel-header">
+        <span class="panel-kicker">Flux Platform</span>
+        <p>Core features for self-hosted personal finance.</p>
+      </div>
+
+      <div class="feature-stack">
+        <article *ngFor="let feature of features; let i = index" class="feature-card">
+          <div class="feature-meta">
+            <span class="feature-index">0{{ i + 1 }}</span>
+            <div class="feature-icon">{{ feature.icon }}</div>
+          </div>
+          <div>
+            <h2>{{ feature.title }}</h2>
+            <p>{{ feature.description }}</p>
+          </div>
+        </article>
       </div>
     </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="cta">
-    <h2>Ready to Get Started?</h2>
-    <p>Manage your accounts and track your finances in one secure platform</p>
-    <button class="btn btn-primary btn-large" routerLink="/accounts">
-      Explore Your Accounts
-    </button>
   </section>
 </div>

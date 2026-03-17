@@ -14,22 +14,22 @@ export class HomeComponent {
     {
       icon: '💼',
       title: 'Account Management',
-      description: 'Easily manage your bank accounts with our intuitive interface'
+      description: 'Keep your accounts organized in one clean workspace built for everyday use.'
     },
     {
       icon: '💰',
       title: 'Transaction Tracking',
-      description: 'Monitor all your transactions in one centralized location'
-    },
-    {
-      icon: '🔒',
-      title: 'Security First',
-      description: 'Your financial data is protected with enterprise-grade security'
+      description: 'Review activity clearly and stay on top of incoming and outgoing transactions.'
     },
     {
       icon: '📊',
       title: 'Analytics & Insights',
-      description: 'Get detailed reports and insights about your spending patterns'
+      description: 'See the patterns behind your finances with simple insights that are easy to understand.'
+    },
+    {
+      icon: '🏠',
+      title: 'Own Your Data',
+      description: 'Install Flux locally and keep your financial data under your control without relying on third-party services.'
     }
   ];
 }
