@@ -21,5 +21,16 @@ public class BankDbContext : DbContext
         modelBuilder.Entity<UserAccount>()
             .Property(user => user.Username)
             .HasMaxLength(100);
+
+        modelBuilder.Entity<UserAccount>()
+            .Property(user => user.Role)
+            .HasMaxLength(50);
+
+        modelBuilder.Entity<BankAccount>()
+            .Property(account => account.Owner)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<BankAccount>()
+            .Property(account => account.OwnerUserId);
     }
 }

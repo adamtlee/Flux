@@ -48,6 +48,9 @@ public class AuthService : IAuthService
             throw new InvalidOperationException("Username already exists.");
         }
 
+        var hasExistingUsers = await _context.UserAccounts.AnyAsync();
+        var assignedRole = hasExistingUsers ? ApplicationRoles.FreeMember : ApplicationRoles.Administrator;
+
         var saltBytes = RandomNumberGenerator.GetBytes(SaltSize);
         var hashBytes = Rfc2898DeriveBytes.Pbkdf2(
             request.Password,
@@ -59,6 +62,7 @@ public class AuthService : IAuthService
         var userAccount = new UserAccount
         {
             Username = normalizedUsername,
+            Role = assignedRole,
             PasswordSalt = Convert.ToBase64String(saltBytes),
             PasswordHash = Convert.ToBase64String(hashBytes),
             PasswordIterations = DefaultIterations
@@ -93,6 +97,12 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Invalid username or password.");
         }
 
+        if (string.IsNullOrWhiteSpace(user.Role))
+        {
+            user.Role = ApplicationRoles.FreeMember;
+            await _context.SaveChangesAsync();
+        }
+
         return CreateAuthResponse(user);
     }
 
@@ -125,6 +135,7 @@ public class AuthService : IAuthService
             new(JwtRegisteredClaimNames.UniqueName, user.Username),
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.Username),
+            new(ClaimTypes.Role, user.Role),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
@@ -146,6 +157,7 @@ public class AuthService : IAuthService
             AccessToken: serializedToken,
             TokenType: "Bearer",
             ExpiresAtUtc: expiresAtUtc,
-            Username: user.Username);
+            Username: user.Username,
+            Role: user.Role);
     }
 }

@@ -4,6 +4,8 @@ public class BankAccount
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
+    public Guid OwnerUserId { get; set; }
+
     public string Owner { get; set; } = string.Empty;
 
     public decimal Balance { get; set; }

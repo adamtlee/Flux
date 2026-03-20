@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Flux.Data.Models;
 using Flux.Services;
+using Flux.Services.Models;
 
 namespace Flux.Api.Controllers;
 
@@ -10,7 +12,7 @@ namespace Flux.Api.Controllers;
 /// Provides CRUD operations for bank account resources.
 /// </summary>
 [ApiController]
-[Authorize]
+[Authorize(Policy = AuthorizationPolicies.FreeMember)]
 [Route("api/[controller]")]
 [Produces("application/json")]
 public class BankAccountsController : ControllerBase
@@ -43,8 +45,15 @@ public class BankAccountsController : ControllerBase
     {
         try
         {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new { message = "User identity is missing from token." });
+            }
+
+            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
             _logger.LogInformation("Retrieving all bank accounts.");
-            var accounts = await _service.GetAllAccountsAsync();
+            var accounts = await _service.GetAllAccountsAsync(userId, isAdministrator);
             return Ok(accounts);
         }
         catch (Exception ex)
@@ -73,6 +82,13 @@ public class BankAccountsController : ControllerBase
     {
         try
         {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new { message = "User identity is missing from token." });
+            }
+
+            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
             if (id == Guid.Empty)
             {
                 _logger.LogWarning("Invalid account ID provided: {AccountId}", id);
@@ -80,7 +96,7 @@ public class BankAccountsController : ControllerBase
             }
 
             _logger.LogInformation("Retrieving bank account with ID: {AccountId}", id);
-            var account = await _service.GetAccountByIdAsync(id);
+            var account = await _service.GetAccountByIdAsync(id, userId, isAdministrator);
 
             if (account == null)
             {
@@ -114,6 +130,17 @@ public class BankAccountsController : ControllerBase
     {
         try
         {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new { message = "User identity is missing from token." });
+            }
+
+            var username = User.Identity?.Name;
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return Unauthorized(new { message = "Username is missing from token." });
+            }
+
             if (account == null)
             {
                 _logger.LogWarning("Null bank account provided for creation.");
@@ -127,7 +154,7 @@ public class BankAccountsController : ControllerBase
             }
 
             _logger.LogInformation("Creating new bank account.");
-            var createdAccount = await _service.CreateAccountAsync(account);
+            var createdAccount = await _service.CreateAccountAsync(account, userId, username);
 
             if (createdAccount == null)
             {
@@ -170,6 +197,13 @@ public class BankAccountsController : ControllerBase
     {
         try
         {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new { message = "User identity is missing from token." });
+            }
+
+            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
             if (id == Guid.Empty)
             {
                 _logger.LogWarning("Invalid account ID provided for update: {AccountId}", id);
@@ -195,7 +229,7 @@ public class BankAccountsController : ControllerBase
             }
 
             _logger.LogInformation("Updating bank account with ID: {AccountId}", id);
-            var success = await _service.UpdateAccountAsync(id, account);
+            var success = await _service.UpdateAccountAsync(id, account, userId, isAdministrator);
 
             if (!success)
             {
@@ -236,6 +270,13 @@ public class BankAccountsController : ControllerBase
     {
         try
         {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new { message = "User identity is missing from token." });
+            }
+
+            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
             if (id == Guid.Empty)
             {
                 _logger.LogWarning("Invalid account ID provided for deletion: {AccountId}", id);
@@ -243,7 +284,7 @@ public class BankAccountsController : ControllerBase
             }
 
             _logger.LogInformation("Deleting bank account with ID: {AccountId}", id);
-            var success = await _service.DeleteAccountAsync(id);
+            var success = await _service.DeleteAccountAsync(id, userId, isAdministrator);
 
             if (!success)
             {
@@ -260,5 +301,12 @@ public class BankAccountsController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "An error occurred while deleting the account.", error = ex.Message });
         }
+    }
+
+    private bool TryGetCurrentUserId(out Guid userId)
+    {
+        userId = Guid.Empty;
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(userIdValue, out userId);
     }
 }
