@@ -31,6 +31,10 @@ public class BankDbContext : DbContext
             .HasMaxLength(100);
 
         modelBuilder.Entity<BankAccount>()
+            .Property(account => account.AccountName)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<BankAccount>()
             .Property(account => account.OwnerUserId);
     }
 }

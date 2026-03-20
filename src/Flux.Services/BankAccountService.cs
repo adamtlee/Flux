@@ -45,6 +45,7 @@ public class BankAccountService : IBankAccountService
     {
         account.OwnerUserId = userId;
         account.Owner = username;
+        account.AccountName = string.IsNullOrWhiteSpace(account.AccountName) ? username : account.AccountName.Trim();
         account.CreatedAt = DateTime.UtcNow;
         account.UpdatedAt = DateTime.UtcNow;
 
@@ -70,16 +71,8 @@ public class BankAccountService : IBankAccountService
 
         existing.Balance = account.Balance;
         existing.Type = account.Type;
+        existing.AccountName = string.IsNullOrWhiteSpace(account.AccountName) ? existing.AccountName : account.AccountName.Trim();
         existing.UpdatedAt = DateTime.UtcNow;
-
-        if (isAdministrator)
-        {
-            existing.Owner = account.Owner;
-            if (account.OwnerUserId != Guid.Empty)
-            {
-                existing.OwnerUserId = account.OwnerUserId;
-            }
-        }
 
         await _context.SaveChangesAsync();
         return true;

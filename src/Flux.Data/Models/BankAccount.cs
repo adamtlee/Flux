@@ -6,6 +6,8 @@ public class BankAccount
 
     public Guid OwnerUserId { get; set; }
 
+    public string AccountName { get; set; } = string.Empty;
+
     public string Owner { get; set; } = string.Empty;
 
     public decimal Balance { get; set; }

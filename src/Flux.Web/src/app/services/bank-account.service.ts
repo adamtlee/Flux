@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { BankAccount } from '../models/bank-account';
 
 export interface CreateBankAccountRequest {
-  owner: string;
+  accountName: string;
   balance: number;
   type: number;
 }

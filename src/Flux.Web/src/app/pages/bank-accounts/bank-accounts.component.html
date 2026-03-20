@@ -55,15 +55,14 @@
         <h3>Create New Account</h3>
         <form (ngSubmit)="createAccount()" #createForm="ngForm">
           <div class="form-group">
-            <label for="owner">Owner Name</label>
+            <label for="accountName">Account Name</label>
             <input
               type="text"
-              id="owner"
-              name="owner"
-              [(ngModel)]="newAccount.owner"
-              required
+              id="accountName"
+              name="accountName"
+              [(ngModel)]="newAccount.accountName"
               class="form-control"
-              placeholder="Enter account owner name">
+              placeholder="Defaults to your name if left blank">
           </div>
 
           <div class="form-group">
@@ -109,8 +108,8 @@
         <div *ngFor="let account of accounts" class="account-card" (click)="showAccountId(account.id)">
           <div class="account-header">
             <div class="account-info">
-              <h3>{{ account.owner }}</h3>
-              <p class="account-type-label">{{ getAccountTypeLabel(account.type) }}</p>
+              <h3>{{ getDisplayAccountName(account) }}</h3>
+              <p class="account-type-label">Created by {{ account.owner }}</p>
             </div>
             <div class="account-type" [style.backgroundColor]="getAccountTypeColor(account.type)">
               {{ getAccountTypeLabel(account.type) }}
@@ -192,7 +191,7 @@
         <div class="largest-account" *ngIf="largestAccount">
           <p>
             Largest account is
-            <strong>{{ largestAccount.owner }}</strong>
+            <strong>{{ getDisplayAccountName(largestAccount) }}</strong>
             with {{ formatCurrency(largestAccount.balance) }}.
           </p>
         </div>

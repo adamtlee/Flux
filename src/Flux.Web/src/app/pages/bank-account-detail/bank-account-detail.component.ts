@@ -52,7 +52,7 @@ export class BankAccountDetailComponent implements OnInit {
 
   private initializeForm(a: BankAccount) {
     this.form = this.fb.group({
-      owner: [a.owner, [Validators.required, Validators.maxLength(100)]],
+      accountName: [a.accountName, [Validators.required, Validators.maxLength(100)]],
       balance: [a.balance, [Validators.required, Validators.min(0)]],
       type: [a.type, [Validators.required]]
     });
@@ -78,7 +78,8 @@ export class BankAccountDetailComponent implements OnInit {
 
     const updated: BankAccount = {
       id: this.account.id,
-      owner: this.form.value.owner,
+      accountName: this.form.value.accountName,
+      owner: this.account.owner,
       balance: Number(this.form.value.balance),
       type: Number(this.form.value.type),
       createdAt: this.account.createdAt,

@@ -42,7 +42,7 @@ export class BankAccountsComponent implements OnInit {
   isCreating = false;
 
   newAccount: Partial<BankAccount> = {
-    owner: '',
+    accountName: '',
     balance: 0,
     type: AccountType.Checking
   };
@@ -137,8 +137,8 @@ export class BankAccountsComponent implements OnInit {
   }
 
   createAccount(): void {
-    if (!this.newAccount.owner || this.newAccount.balance === undefined || this.newAccount.balance < 0) {
-      alert('Please fill in all fields correctly.');
+    if (this.newAccount.balance === undefined || this.newAccount.balance < 0) {
+      alert('Please fill in the balance correctly.');
       return;
     }
 
@@ -146,7 +146,7 @@ export class BankAccountsComponent implements OnInit {
     this.error = null;
 
     const accountToCreate: CreateBankAccountRequest = {
-      owner: this.newAccount.owner!,
+      accountName: this.newAccount.accountName?.trim() ?? '',
       balance: this.newAccount.balance!,
       type: Number(this.newAccount.type!)
     };
@@ -170,7 +170,7 @@ export class BankAccountsComponent implements OnInit {
 
   private resetForm(): void {
     this.newAccount = {
-      owner: '',
+      accountName: '',
       balance: 0,
       type: AccountType.Checking
     };
@@ -198,5 +198,11 @@ export class BankAccountsComponent implements OnInit {
       [AccountType.CreditCard]: '#f44336'
     };
     return colors[type] || '#9c27b0';
+  }
+
+  getDisplayAccountName(account: BankAccount): string {
+    const accountName = account.accountName?.trim();
+    const ownerName = account.owner?.trim();
+    return accountName || ownerName || 'Unnamed Account';
   }
 }

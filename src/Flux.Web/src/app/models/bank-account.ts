@@ -1,5 +1,6 @@
 export interface BankAccount {
   id: string;
+  accountName: string;
   owner: string;
   balance: number;
   type: AccountType;

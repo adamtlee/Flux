@@ -89,6 +89,7 @@ using (var scope = app.Services.CreateScope())
 
     EnsureColumnExists(context, "UserAccounts", "Role", "TEXT NOT NULL DEFAULT 'FreeMember'");
     EnsureColumnExists(context, "Accounts", "OwnerUserId", "TEXT NULL");
+    EnsureColumnExists(context, "Accounts", "AccountName", "TEXT NULL");
 
     var firstUser = context.UserAccounts
         .OrderBy(user => user.CreatedAt)
@@ -119,6 +120,17 @@ using (var scope = app.Services.CreateScope())
             {
                 account.Owner = firstUser.Username;
             }
+            account.UpdatedAt = DateTime.UtcNow;
+        }
+
+        var accountsMissingName = context.Accounts
+            .Where(account => string.IsNullOrWhiteSpace(account.AccountName));
+
+        foreach (var account in accountsMissingName)
+        {
+            account.AccountName = !string.IsNullOrWhiteSpace(account.Owner)
+                ? account.Owner
+                : firstUser.Username;
             account.UpdatedAt = DateTime.UtcNow;
         }
 
