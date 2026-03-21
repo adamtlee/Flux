@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Flux.Data.Models;
 using Flux.Services;
@@ -135,7 +136,9 @@ public class BankAccountsController : ControllerBase
                 return Unauthorized(new { message = "User identity is missing from token." });
             }
 
-            var username = User.Identity?.Name;
+            var username = User.Identity?.Name
+                ?? User.FindFirstValue(ClaimTypes.Name)
+                ?? User.FindFirstValue(JwtRegisteredClaimNames.UniqueName);
             if (string.IsNullOrWhiteSpace(username))
             {
                 return Unauthorized(new { message = "Username is missing from token." });
