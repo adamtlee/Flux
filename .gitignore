@@ -10,3 +10,6 @@
 
 # Logs
 *.log
+
+# Published release artifacts
+src/publish/
