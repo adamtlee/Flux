@@ -81,7 +81,7 @@ public sealed class DatabaseSchemaInitializerTests : IDisposable
     }
 
     [Fact]
-    public async Task InitializeSchemaAsync_AccountsTable_IncludesOwnerUserIdAndAccountNameColumns()
+    public async Task InitializeSchemaAsync_AccountsTable_IncludesOwnershipNamingAndRateColumns()
     {
         await _initializer.InitializeSchemaAsync();
 
@@ -92,7 +92,9 @@ public sealed class DatabaseSchemaInitializerTests : IDisposable
             AccountName = "Schema Test Account",
             Owner = "schema-test",
             Balance = 1_000m,
-            Type = AccountType.Savings
+            Type = AccountType.Savings,
+            CreditCardAprPercent = null,
+            SavingsApyPercent = 4.5m
         };
 
         _context.Accounts.Add(account);
@@ -101,5 +103,7 @@ public sealed class DatabaseSchemaInitializerTests : IDisposable
         var saved = await _context.Accounts.SingleAsync();
         Assert.Equal(ownerUserId, saved.OwnerUserId);
         Assert.Equal("Schema Test Account", saved.AccountName);
+        Assert.Null(saved.CreditCardAprPercent);
+        Assert.Equal(4.5m, saved.SavingsApyPercent);
     }
 }

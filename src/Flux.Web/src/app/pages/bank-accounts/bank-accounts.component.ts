@@ -2,10 +2,17 @@ import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { LoadingComponent } from '../../components/loading/loading.component';
 import { BankAccountService, CreateBankAccountRequest } from '../../services/bank-account.service';
 import { Router } from '@angular/router';
-import { BankAccount, AccountType } from '../../models/bank-account';
+import {
+  BankAccount,
+  AccountType,
+  CreditCardRateAnalytics,
+  PortfolioRateAnalyticsResponse,
+  SavingsRateAnalytics
+} from '../../models/bank-account';
 
 type AccountsTab = 'accounts' | 'insights';
 
@@ -27,6 +34,7 @@ interface AccountTypeInsight {
 })
 export class BankAccountsComponent implements OnInit {
   accounts: BankAccount[] = [];
+  portfolioAnalytics: PortfolioRateAnalyticsResponse | null = null;
   loading = true;
   error: string | null = null;
   activeTab: AccountsTab = 'accounts';
@@ -44,7 +52,9 @@ export class BankAccountsComponent implements OnInit {
   newAccount: Partial<BankAccount> = {
     accountName: '',
     balance: 0,
-    type: AccountType.Checking
+    type: AccountType.Checking,
+    creditCardAprPercent: null,
+    savingsApyPercent: null
   };
 
   accountTypes = [
@@ -70,9 +80,13 @@ export class BankAccountsComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.bankAccountService.getAllAccounts().subscribe({
-      next: (data) => {
-        this.accounts = data;
+    forkJoin({
+      accounts: this.bankAccountService.getAllAccounts(),
+      analytics: this.bankAccountService.getPortfolioRateAnalytics()
+    }).subscribe({
+      next: ({ accounts, analytics }) => {
+        this.accounts = accounts;
+        this.portfolioAnalytics = analytics;
         this.calculateTotalBalance();
         this.refreshInsights();
         this.loading = false;
@@ -148,17 +162,16 @@ export class BankAccountsComponent implements OnInit {
     const accountToCreate: CreateBankAccountRequest = {
       accountName: this.newAccount.accountName?.trim() ?? '',
       balance: this.newAccount.balance!,
-      type: Number(this.newAccount.type!)
+      type: Number(this.newAccount.type!),
+      creditCardAprPercent: this.isCreditCardSelection() ? this.normalizeOptionalRate(this.newAccount.creditCardAprPercent) : null,
+      savingsApyPercent: this.isSavingsSelection() ? this.normalizeOptionalRate(this.newAccount.savingsApyPercent) : null
     };
 
     this.bankAccountService.createAccount(accountToCreate).subscribe({
-      next: (createdAccount) => {
-        this.accounts.push(createdAccount);
-        this.calculateTotalBalance();
-        this.refreshInsights();
-        this.loading = false;
+      next: () => {
         this.isCreating = false;
         this.resetForm();
+        this.loadAccounts();
       },
       error: (err) => {
         console.error('Error creating account:', err);
@@ -172,8 +185,20 @@ export class BankAccountsComponent implements OnInit {
     this.newAccount = {
       accountName: '',
       balance: 0,
-      type: AccountType.Checking
+      type: AccountType.Checking,
+      creditCardAprPercent: null,
+      savingsApyPercent: null
     };
+  }
+
+  onNewAccountTypeChange(): void {
+    if (!this.isCreditCardSelection()) {
+      this.newAccount.creditCardAprPercent = null;
+    }
+
+    if (!this.isSavingsSelection()) {
+      this.newAccount.savingsApyPercent = null;
+    }
   }
 
   showAccountId(id: string): void {
@@ -204,5 +229,40 @@ export class BankAccountsComponent implements OnInit {
     const accountName = account.accountName?.trim();
     const ownerName = account.owner?.trim();
     return accountName || ownerName || 'Unnamed Account';
+  }
+
+  isCreditCardSelection(): boolean {
+    return Number(this.newAccount.type) === AccountType.CreditCard;
+  }
+
+  isSavingsSelection(): boolean {
+    return Number(this.newAccount.type) === AccountType.Savings;
+  }
+
+  get creditCardAnalytics(): CreditCardRateAnalytics[] {
+    return this.portfolioAnalytics?.creditCards ?? [];
+  }
+
+  get savingsAnalytics(): SavingsRateAnalytics[] {
+    return this.portfolioAnalytics?.savingsAccounts ?? [];
+  }
+
+  formatPercent(value: number, digits = '1.2-2'): string {
+    return `${new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: digits === '1.4-4' ? 4 : 2
+    }).format(value)}%`;
+  }
+
+  trackByAccountId(_: number, item: { accountId: string }): string {
+    return item.accountId;
+  }
+
+  private normalizeOptionalRate(value: number | null | undefined): number | null {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return null;
+    }
+
+    return Number(value);
   }
 }

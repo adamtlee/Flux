@@ -1,12 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { BankAccount } from '../models/bank-account';
+import {
+  AccountRateAnalyticsResponse,
+  BankAccount,
+  PortfolioRateAnalyticsResponse
+} from '../models/bank-account';
 
 export interface CreateBankAccountRequest {
   accountName: string;
   balance: number;
   type: number;
+  creditCardAprPercent?: number | null;
+  savingsApyPercent?: number | null;
 }
 
 @Injectable({
@@ -35,5 +41,13 @@ export class BankAccountService {
 
   deleteAccount(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getPortfolioRateAnalytics(): Observable<PortfolioRateAnalyticsResponse> {
+    return this.http.get<PortfolioRateAnalyticsResponse>(`${this.apiUrl}/analytics/portfolio`);
+  }
+
+  getAccountRateAnalytics(id: string): Observable<AccountRateAnalyticsResponse> {
+    return this.http.get<AccountRateAnalyticsResponse>(`${this.apiUrl}/${id}/analytics`);
   }
 }

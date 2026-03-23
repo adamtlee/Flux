@@ -19,17 +19,23 @@ namespace Flux.Api.Controllers;
 public class BankAccountsController : ControllerBase
 {
     private readonly IBankAccountService _service;
+    private readonly IAccountAnalyticsService _analyticsService;
     private readonly ILogger<BankAccountsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the BankAccountsController class.
     /// </summary>
     /// <param name="service">The bank account service.</param>
+    /// <param name="analyticsService">The account analytics service.</param>
     /// <param name="logger">The logger instance.</param>
-    /// <exception cref="ArgumentNullException">Thrown when service or logger is null.</exception>
-    public BankAccountsController(IBankAccountService service, ILogger<BankAccountsController> logger)
+    /// <exception cref="ArgumentNullException">Thrown when service, analyticsService, or logger is null.</exception>
+    public BankAccountsController(
+        IBankAccountService service,
+        IAccountAnalyticsService analyticsService,
+        ILogger<BankAccountsController> logger)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
+        _analyticsService = analyticsService ?? throw new ArgumentNullException(nameof(analyticsService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -62,6 +68,88 @@ public class BankAccountsController : ControllerBase
             _logger.LogError(ex, "An error occurred while retrieving all bank accounts.");
             return StatusCode(StatusCodes.Status500InternalServerError, 
                 new { message = "An error occurred while retrieving accounts.", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Gets rate analytics across the current user's portfolio.
+    /// </summary>
+    /// <returns>Portfolio APR/APY analytics summary and per-account details.</returns>
+    /// <response code="200">Returns portfolio analytics.</response>
+    /// <response code="500">Internal server error.</response>
+    [HttpGet("analytics/portfolio")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PortfolioRateAnalyticsResponse>> GetPortfolioAnalytics()
+    {
+        try
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new { message = "User identity is missing from token." });
+            }
+
+            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
+            _logger.LogInformation("Retrieving portfolio analytics.");
+            var analytics = await _analyticsService.GetPortfolioAnalyticsAsync(userId, isAdministrator);
+            return Ok(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while retrieving portfolio analytics.");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while retrieving portfolio analytics.", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Gets rate analytics for a specific account.
+    /// </summary>
+    /// <param name="id">The bank account ID.</param>
+    /// <returns>APR/APY analytics for the requested account.</returns>
+    /// <response code="200">Returns account analytics.</response>
+    /// <response code="400">Bad request (invalid ID format).</response>
+    /// <response code="404">Bank account not found.</response>
+    /// <response code="500">Internal server error.</response>
+    [HttpGet("{id}/analytics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<AccountRateAnalyticsResponse>> GetAccountAnalytics(Guid id)
+    {
+        try
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new { message = "User identity is missing from token." });
+            }
+
+            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
+            if (id == Guid.Empty)
+            {
+                _logger.LogWarning("Invalid account ID provided for analytics: {AccountId}", id);
+                return BadRequest(new { message = "Account ID cannot be empty." });
+            }
+
+            _logger.LogInformation("Retrieving analytics for bank account with ID: {AccountId}", id);
+            var analytics = await _analyticsService.GetAccountAnalyticsByIdAsync(id, userId, isAdministrator);
+
+            if (analytics == null)
+            {
+                _logger.LogWarning("Bank account not found for analytics with ID: {AccountId}", id);
+                return NotFound(new { message = $"Bank account with ID {id} not found." });
+            }
+
+            return Ok(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while retrieving analytics for bank account with ID: {AccountId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while retrieving account analytics.", error = ex.Message });
         }
     }
 

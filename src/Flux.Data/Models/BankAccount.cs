@@ -14,6 +14,10 @@ public class BankAccount
 
     public AccountType Type { get; set; }
 
+    public decimal? CreditCardAprPercent { get; set; }
+
+    public decimal? SavingsApyPercent { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

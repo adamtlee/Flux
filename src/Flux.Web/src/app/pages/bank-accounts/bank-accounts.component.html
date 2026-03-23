@@ -85,12 +85,43 @@
               id="type"
               name="type"
               [(ngModel)]="newAccount.type"
+              (ngModelChange)="onNewAccountTypeChange()"
               required
               class="form-control">
               <option *ngFor="let type of accountTypes" [ngValue]="type.value">
                 {{ type.label }}
               </option>
             </select>
+          </div>
+
+          <div class="rate-fields" *ngIf="isCreditCardSelection() || isSavingsSelection()">
+            <div class="form-group" *ngIf="isCreditCardSelection()">
+              <label for="creditCardAprPercent">APR Override</label>
+              <input
+                type="number"
+                id="creditCardAprPercent"
+                name="creditCardAprPercent"
+                [(ngModel)]="newAccount.creditCardAprPercent"
+                min="0"
+                max="100"
+                step="0.01"
+                class="form-control"
+                placeholder="Uses default APR if blank">
+            </div>
+
+            <div class="form-group" *ngIf="isSavingsSelection()">
+              <label for="savingsApyPercent">APY Override</label>
+              <input
+                type="number"
+                id="savingsApyPercent"
+                name="savingsApyPercent"
+                [(ngModel)]="newAccount.savingsApyPercent"
+                min="0"
+                max="100"
+                step="0.01"
+                class="form-control"
+                placeholder="Uses default APY if blank">
+            </div>
           </div>
 
           <div class="form-actions">
@@ -162,6 +193,14 @@
           <p class="summary-label">Average Account Balance</p>
           <p class="summary-value">{{ formatCurrency(averageAccountBalance) }}</p>
         </div>
+        <div class="summary-card accent-card">
+          <p class="summary-label">Avg Credit APR</p>
+          <p class="summary-value">{{ formatPercent(portfolioAnalytics?.creditCardSummary?.averageAprPercent ?? 0) }}</p>
+        </div>
+        <div class="summary-card accent-card">
+          <p class="summary-label">Avg Savings APY</p>
+          <p class="summary-value">{{ formatPercent(portfolioAnalytics?.savingsSummary?.averageApyPercent ?? 0) }}</p>
+        </div>
       </div>
 
       <div class="chart-card" *ngIf="accounts.length > 0; else noInsights">
@@ -195,6 +234,123 @@
             with {{ formatCurrency(largestAccount.balance) }}.
           </p>
         </div>
+      </div>
+
+      <div class="analytics-grid" *ngIf="portfolioAnalytics && (creditCardAnalytics.length > 0 || savingsAnalytics.length > 0)">
+        <section class="analytics-card" *ngIf="creditCardAnalytics.length > 0">
+          <div class="analytics-card-header">
+            <div>
+              <p class="eyebrow">Credit Card APR</p>
+              <h3>Interest exposure</h3>
+            </div>
+            <p class="analytics-highlight">{{ formatCurrency(portfolioAnalytics.creditCardSummary.totalEstimatedMonthlyInterest) }}/mo</p>
+          </div>
+
+          <div class="analytics-summary-row">
+            <div>
+              <span class="analytics-label">Cards tracked</span>
+              <strong>{{ portfolioAnalytics.creditCardSummary.cardCount }}</strong>
+            </div>
+            <div>
+              <span class="analytics-label">Total card balance</span>
+              <strong>{{ formatCurrency(portfolioAnalytics.creditCardSummary.totalBalance) }}</strong>
+            </div>
+          </div>
+
+          <div class="analytics-list">
+            <article class="analytics-item" *ngFor="let card of creditCardAnalytics; trackBy: trackByAccountId">
+              <div class="analytics-item-header">
+                <div>
+                  <h4>{{ card.accountName }}</h4>
+                  <p>#{{ card.aprRank }} lowest APR</p>
+                </div>
+                <div class="pill pill-warm">{{ formatPercent(card.aprPercent) }}</div>
+              </div>
+
+              <div class="analytics-metrics">
+                <div>
+                  <span>Balance</span>
+                  <strong>{{ formatCurrency(card.balance) }}</strong>
+                </div>
+                <div>
+                  <span>Daily rate</span>
+                  <strong>{{ formatPercent(card.effectiveDailyRatePercent, '1.4-4') }}</strong>
+                </div>
+                <div>
+                  <span>Monthly interest</span>
+                  <strong>{{ formatCurrency(card.estimatedMonthlyInterest) }}</strong>
+                </div>
+                <div>
+                  <span>Minimum payment</span>
+                  <strong>{{ formatCurrency(card.minimumPaymentAmount) }}</strong>
+                </div>
+              </div>
+
+              <p class="analytics-footnote" *ngIf="card.estimatedPayoffMonths !== null; else noProjection">
+                Estimated payoff in {{ card.estimatedPayoffMonths }} month{{ card.estimatedPayoffMonths !== 1 ? 's' : '' }} if only the minimum is paid.
+              </p>
+              <ng-template #noProjection>
+                <p class="analytics-footnote warning-text">Minimum payment does not outpace monthly interest at this balance.</p>
+              </ng-template>
+            </article>
+          </div>
+        </section>
+
+        <section class="analytics-card" *ngIf="savingsAnalytics.length > 0">
+          <div class="analytics-card-header">
+            <div>
+              <p class="eyebrow">High-Yield Savings</p>
+              <h3>Yield outlook</h3>
+            </div>
+            <p class="analytics-highlight">{{ formatCurrency(portfolioAnalytics.savingsSummary.totalProjectedAnnualInterest) }}/yr</p>
+          </div>
+
+          <div class="analytics-summary-row">
+            <div>
+              <span class="analytics-label">Accounts tracked</span>
+              <strong>{{ portfolioAnalytics.savingsSummary.accountCount }}</strong>
+            </div>
+            <div>
+              <span class="analytics-label">Projected monthly interest</span>
+              <strong>{{ formatCurrency(portfolioAnalytics.savingsSummary.totalProjectedMonthlyInterest) }}</strong>
+            </div>
+          </div>
+
+          <div class="analytics-list">
+            <article class="analytics-item" *ngFor="let savings of savingsAnalytics; trackBy: trackByAccountId">
+              <div class="analytics-item-header">
+                <div>
+                  <h4>{{ savings.accountName }}</h4>
+                  <p>#{{ savings.apyRank }} highest APY</p>
+                </div>
+                <div class="pill pill-cool">{{ formatPercent(savings.apyPercent) }}</div>
+              </div>
+
+              <div class="analytics-metrics">
+                <div>
+                  <span>Balance</span>
+                  <strong>{{ formatCurrency(savings.balance) }}</strong>
+                </div>
+                <div>
+                  <span>Projected monthly</span>
+                  <strong>{{ formatCurrency(savings.projectedMonthlyInterest) }}</strong>
+                </div>
+                <div>
+                  <span>Projected annual</span>
+                  <strong>{{ formatCurrency(savings.projectedAnnualInterest) }}</strong>
+                </div>
+              </div>
+
+              <div class="compounding-grid">
+                <div class="compounding-card" *ngFor="let scenario of savings.compoundingScenarios">
+                  <span>{{ scenario.name }}</span>
+                  <strong>{{ formatCurrency(scenario.annualInterestEarned) }}</strong>
+                  <small>Ending {{ formatCurrency(scenario.endingBalance) }}</small>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
       </div>
 
       <ng-template #noInsights>

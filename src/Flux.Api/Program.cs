@@ -14,7 +14,9 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.Configure<RateAnalyticsOptions>(builder.Configuration.GetSection(RateAnalyticsOptions.SectionName));
 builder.Services.AddScoped<IBankAccountService, BankAccountService>();
+builder.Services.AddScoped<IAccountAnalyticsService, AccountAnalyticsService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddApplicationAuthorization();

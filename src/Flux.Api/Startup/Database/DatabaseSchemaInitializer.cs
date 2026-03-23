@@ -32,6 +32,8 @@ public sealed class DatabaseSchemaInitializer(BankDbContext context) : IDatabase
         EnsureColumnExists(context, "UserAccounts", "Role", "TEXT NOT NULL DEFAULT 'FreeMember'");
         EnsureColumnExists(context, "Accounts", "OwnerUserId", "TEXT NULL");
         EnsureColumnExists(context, "Accounts", "AccountName", "TEXT NULL");
+        EnsureColumnExists(context, "Accounts", "CreditCardAprPercent", "REAL NULL");
+        EnsureColumnExists(context, "Accounts", "SavingsApyPercent", "REAL NULL");
     }
 
     private static void EnsureColumnExists(BankDbContext context, string tableName, string columnName, string columnDefinition)

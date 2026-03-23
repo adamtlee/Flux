@@ -25,6 +25,17 @@
         <div class="balance-value">{{ account.balance | currency:'USD' }}</div>
       </div>
 
+      <div class="rate-summary" *ngIf="isCreditCard(account.type) || isSavings(account.type)">
+        <div class="rate-card" *ngIf="isCreditCard(account.type)">
+          <div class="meta-label">APR Override</div>
+          <div class="meta-value">{{ (account.creditCardAprPercent ?? 24.99) | number:'1.2-2' }}%</div>
+        </div>
+        <div class="rate-card" *ngIf="isSavings(account.type)">
+          <div class="meta-label">APY Override</div>
+          <div class="meta-value">{{ (account.savingsApyPercent ?? 4.5) | number:'1.2-2' }}%</div>
+        </div>
+      </div>
+
       <div class="account-footer">
         <div class="account-meta">
           <div class="meta-item">
@@ -55,6 +66,18 @@
         <select class="form-control" formControlName="type">
           <option *ngFor="let t of [{value:0,label:'Checking'},{value:1,label:'Savings'},{value:2,label:'Credit Card'}]" [ngValue]="t.value">{{ t.label }}</option>
         </select>
+      </div>
+
+      <div class="rate-summary" *ngIf="form.value.type === 1 || form.value.type === 2">
+        <div class="form-group" *ngIf="form.value.type === 2">
+          <label>APR Override</label>
+          <input type="number" class="form-control" formControlName="creditCardAprPercent" step="0.01" min="0" max="100" />
+        </div>
+
+        <div class="form-group" *ngIf="form.value.type === 1">
+          <label>APY Override</label>
+          <input type="number" class="form-control" formControlName="savingsApyPercent" step="0.01" min="0" max="100" />
+        </div>
       </div>
 
       <div class="form-actions" style="justify-content:flex-end;">

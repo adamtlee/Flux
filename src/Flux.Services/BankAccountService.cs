@@ -43,9 +43,12 @@ public class BankAccountService : IBankAccountService
 
     public async Task<BankAccount> CreateAccountAsync(BankAccount account, Guid userId, string username)
     {
+        ValidateRateFields(account);
+
         account.OwnerUserId = userId;
         account.Owner = username;
         account.AccountName = string.IsNullOrWhiteSpace(account.AccountName) ? username : account.AccountName.Trim();
+        NormalizeRateFields(account);
         account.CreatedAt = DateTime.UtcNow;
         account.UpdatedAt = DateTime.UtcNow;
 
@@ -57,6 +60,8 @@ public class BankAccountService : IBankAccountService
     public async Task<bool> UpdateAccountAsync(Guid id, BankAccount account, Guid userId, bool isAdministrator)
     {
         if (id != account.Id) return false;
+
+        ValidateRateFields(account);
 
         var existing = await _context.Accounts.FindAsync(id);
         if (existing is null)
@@ -72,6 +77,9 @@ public class BankAccountService : IBankAccountService
         existing.Balance = account.Balance;
         existing.Type = account.Type;
         existing.AccountName = string.IsNullOrWhiteSpace(account.AccountName) ? existing.AccountName : account.AccountName.Trim();
+        existing.CreditCardAprPercent = account.CreditCardAprPercent;
+        existing.SavingsApyPercent = account.SavingsApyPercent;
+        NormalizeRateFields(existing);
         existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
@@ -91,5 +99,31 @@ public class BankAccountService : IBankAccountService
         _context.Accounts.Remove(account);
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    private static void ValidateRateFields(BankAccount account)
+    {
+        if (account.CreditCardAprPercent is < 0m or > 100m)
+        {
+            throw new ArgumentException("CreditCardAprPercent must be between 0 and 100.");
+        }
+
+        if (account.SavingsApyPercent is < 0m or > 100m)
+        {
+            throw new ArgumentException("SavingsApyPercent must be between 0 and 100.");
+        }
+    }
+
+    private static void NormalizeRateFields(BankAccount account)
+    {
+        if (account.Type != AccountType.CreditCard)
+        {
+            account.CreditCardAprPercent = null;
+        }
+
+        if (account.Type != AccountType.Savings)
+        {
+            account.SavingsApyPercent = null;
+        }
     }
 }

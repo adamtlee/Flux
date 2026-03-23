@@ -54,7 +54,9 @@ export class BankAccountDetailComponent implements OnInit {
     this.form = this.fb.group({
       accountName: [a.accountName, [Validators.required, Validators.maxLength(100)]],
       balance: [a.balance, [Validators.required, Validators.min(0)]],
-      type: [a.type, [Validators.required]]
+      type: [a.type, [Validators.required]],
+      creditCardAprPercent: [a.creditCardAprPercent ?? null, [Validators.min(0), Validators.max(100)]],
+      savingsApyPercent: [a.savingsApyPercent ?? null, [Validators.min(0), Validators.max(100)]]
     });
   }
 
@@ -82,6 +84,12 @@ export class BankAccountDetailComponent implements OnInit {
       owner: this.account.owner,
       balance: Number(this.form.value.balance),
       type: Number(this.form.value.type),
+      creditCardAprPercent: Number(this.form.value.type) === AccountType.CreditCard
+        ? this.normalizeOptionalRate(this.form.value.creditCardAprPercent)
+        : null,
+      savingsApyPercent: Number(this.form.value.type) === AccountType.Savings
+        ? this.normalizeOptionalRate(this.form.value.savingsApyPercent)
+        : null,
       createdAt: this.account.createdAt,
       updatedAt: new Date().toISOString()
     };
@@ -133,5 +141,21 @@ export class BankAccountDetailComponent implements OnInit {
       default:
         return 'Unknown';
     }
+  }
+
+  isCreditCard(type: AccountType | number): boolean {
+    return Number(type) === AccountType.CreditCard;
+  }
+
+  isSavings(type: AccountType | number): boolean {
+    return Number(type) === AccountType.Savings;
+  }
+
+  private normalizeOptionalRate(value: number | null | undefined): number | null {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) {
+      return null;
+    }
+
+    return Number(value);
   }
 }
