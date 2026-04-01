@@ -77,6 +77,80 @@
   }
 }
 
+.import-export-card {
+  background: #fff;
+  border: 1px solid #e0e6ef;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(18, 44, 78, 0.06);
+
+  h3 {
+    margin: 0 0 0.5rem;
+    color: #17324a;
+  }
+
+  .helper-text {
+    margin: 0 0 1rem;
+    color: #5f7388;
+    font-size: 0.92rem;
+  }
+}
+
+.target-user-row {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: #26425d;
+    font-weight: 600;
+  }
+
+  .form-control {
+    width: 100%;
+    max-width: 520px;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #cfd9e4;
+    border-radius: 0.5rem;
+  }
+}
+
+.import-export-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.file-button {
+  position: relative;
+  overflow: hidden;
+
+  input[type='file'] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &.disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.import-status {
+  margin: 1rem 0 0;
+  color: #1b5e20;
+  font-weight: 600;
+}
+
+.import-error {
+  margin: 0.85rem 0 0;
+  color: #b71c1c;
+  font-weight: 600;
+}
+
 // Create Form Card
 .create-form-card {
   background: white;
@@ -485,6 +559,11 @@
   .account-footer .account-meta {
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .import-export-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

@@ -51,6 +51,53 @@
         </button>
       </div>
 
+      <div class="import-export-card">
+        <h3>Import / Export</h3>
+        <p class="helper-text">Import from CSV/XLSX with transactional upsert by ID, or export your accounts.</p>
+
+        <div class="target-user-row">
+          <label for="targetUserId">Target User ID (admins only)</label>
+          <input
+            type="text"
+            id="targetUserId"
+            name="targetUserId"
+            [(ngModel)]="targetUserId"
+            class="form-control"
+            placeholder="Leave blank to use your own account set">
+        </div>
+
+        <div class="import-export-actions">
+          <label class="btn btn-success file-button" [class.disabled]="importInProgress || loading">
+            {{ importInProgress ? 'Importing...' : 'Import CSV/XLSX' }}
+            <input
+              type="file"
+              accept=".csv,.xlsx"
+              (change)="onImportFileSelected($event)"
+              [disabled]="importInProgress || loading">
+          </label>
+
+          <button type="button" class="btn btn-secondary" (click)="exportCsv()" [disabled]="exportInProgress || loading">
+            Export CSV
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="exportXlsx()" [disabled]="exportInProgress || loading">
+            Export XLSX
+          </button>
+          <button type="button" class="btn btn-primary" (click)="downloadTemplateCsv()" [disabled]="templateDownloadInProgress || loading">
+            Template CSV
+          </button>
+          <button type="button" class="btn btn-primary" (click)="downloadTemplateXlsx()" [disabled]="templateDownloadInProgress || loading">
+            Template XLSX
+          </button>
+        </div>
+
+        <p class="import-status" *ngIf="importResult">
+          {{ importResult.message }} Processed {{ importResult.rowsProcessed }} row(s):
+          {{ importResult.createdCount }} created, {{ importResult.updatedCount }} updated
+          <span *ngIf="importFileName">from {{ importFileName }}</span>.
+        </p>
+        <p class="import-error" *ngIf="importError">{{ importError }}</p>
+      </div>
+
       <div *ngIf="isCreating" class="create-form-card">
         <h3>Create New Account</h3>
         <form (ngSubmit)="createAccount()" #createForm="ngForm">

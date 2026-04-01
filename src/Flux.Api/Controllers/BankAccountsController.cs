@@ -394,6 +394,164 @@ public class BankAccountsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Imports bank accounts from a CSV or XLSX file.
+    /// </summary>
+    /// <param name="file">The file to import.</param>
+    /// <param name="targetUserId">Optional target user ID for administrators.</param>
+    /// <returns>Import result metadata.</returns>
+    [HttpPost("import")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<BankAccountImportResult>> ImportAccounts([FromForm] IFormFile file, [FromQuery] Guid? targetUserId)
+    {
+        try
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new { message = "User identity is missing from token." });
+            }
+
+            var username = User.Identity?.Name
+                ?? User.FindFirstValue(ClaimTypes.Name)
+                ?? User.FindFirstValue(JwtRegisteredClaimNames.UniqueName);
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return Unauthorized(new { message = "Username is missing from token." });
+            }
+
+            if (file is null || file.Length == 0)
+            {
+                return BadRequest(new { message = "A non-empty .csv or .xlsx file is required." });
+            }
+
+            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
+            await using var stream = file.OpenReadStream();
+            var result = await _service.ImportAccountsAsync(
+                stream,
+                file.FileName,
+                userId,
+                username,
+                isAdministrator,
+                targetUserId);
+
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized import attempt.");
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error occurred while importing bank accounts.");
+            return BadRequest(new { message = "Validation error.", error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while importing bank accounts.");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while importing accounts.", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Exports bank accounts as CSV.
+    /// </summary>
+    /// <param name="targetUserId">Optional target user ID for administrators.</param>
+    [HttpGet("export/csv")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ExportCsv([FromQuery] Guid? targetUserId)
+    {
+        return await ExportByFormatAsync(BankAccountFileFormat.Csv, targetUserId);
+    }
+
+    /// <summary>
+    /// Exports bank accounts as XLSX.
+    /// </summary>
+    /// <param name="targetUserId">Optional target user ID for administrators.</param>
+    [HttpGet("export/xlsx")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ExportXlsx([FromQuery] Guid? targetUserId)
+    {
+        return await ExportByFormatAsync(BankAccountFileFormat.Xlsx, targetUserId);
+    }
+
+    /// <summary>
+    /// Downloads CSV import template.
+    /// </summary>
+    [HttpGet("template/csv")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult DownloadCsvTemplate()
+    {
+        var bytes = _service.GetImportTemplate(BankAccountFileFormat.Csv);
+        return File(bytes, "text/csv", "bank-accounts-template.csv");
+    }
+
+    /// <summary>
+    /// Downloads XLSX import template.
+    /// </summary>
+    [HttpGet("template/xlsx")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult DownloadXlsxTemplate()
+    {
+        var bytes = _service.GetImportTemplate(BankAccountFileFormat.Xlsx);
+        return File(
+            bytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "bank-accounts-template.xlsx");
+    }
+
+    private async Task<IActionResult> ExportByFormatAsync(BankAccountFileFormat format, Guid? targetUserId)
+    {
+        try
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new { message = "User identity is missing from token." });
+            }
+
+            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+            var bytes = await _service.ExportAccountsAsync(userId, isAdministrator, targetUserId, format);
+            var dateSuffix = DateTime.UtcNow.ToString("yyyyMMdd");
+
+            return format switch
+            {
+                BankAccountFileFormat.Csv => File(bytes, "text/csv", $"bank-accounts-{dateSuffix}.csv"),
+                BankAccountFileFormat.Xlsx => File(
+                    bytes,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"bank-accounts-{dateSuffix}.xlsx"),
+                _ => BadRequest(new { message = "Unsupported export format." })
+            };
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized export attempt.");
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error occurred while exporting bank accounts.");
+            return BadRequest(new { message = "Validation error.", error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while exporting bank accounts.");
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { message = "An error occurred while exporting accounts.", error = ex.Message });
+        }
+    }
+
     private bool TryGetCurrentUserId(out Guid userId)
     {
         userId = Guid.Empty;

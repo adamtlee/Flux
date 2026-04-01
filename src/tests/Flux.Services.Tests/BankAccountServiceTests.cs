@@ -1,8 +1,10 @@
 using Flux.Data;
 using Flux.Data.Models;
 using Flux.Services;
+using Flux.Services.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace Flux.Services.Tests;
 
@@ -137,5 +139,80 @@ public sealed class BankAccountServiceTests : IDisposable
 
         Assert.False(success);
         Assert.Equal(1, await _context.Accounts.CountAsync());
+    }
+
+    [Fact]
+    public async Task ImportAccountsAsync_Csv_UpsertsAndCreatesInSingleRequest()
+    {
+        var userId = Guid.NewGuid();
+        var existing = new BankAccount
+        {
+            OwnerUserId = userId,
+            Owner = "owner",
+            AccountName = "Old Name",
+            Balance = 100m,
+            Type = AccountType.Checking
+        };
+
+        _context.Accounts.Add(existing);
+        await _context.SaveChangesAsync();
+
+        var csv = $"Id,AccountName,Balance,Type,CreditCardAprPercent,SavingsApyPercent\n" +
+                  $"{existing.Id},Updated Name,250.5,Savings,,4.35\n" +
+                  ",New Card,500,CreditCard,23.99,\n";
+
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+        var result = await _service.ImportAccountsAsync(stream, "accounts.csv", userId, "owner", isAdministrator: false, targetUserId: null);
+
+        Assert.Equal(2, result.RowsProcessed);
+        Assert.Equal(1, result.UpdatedCount);
+        Assert.Equal(1, result.CreatedCount);
+
+        var updated = await _context.Accounts.FindAsync(existing.Id);
+        Assert.NotNull(updated);
+        Assert.Equal("Updated Name", updated!.AccountName);
+        Assert.Equal(AccountType.Savings, updated.Type);
+        Assert.Equal(4.35m, updated.SavingsApyPercent);
+        Assert.Null(updated.CreditCardAprPercent);
+
+        var created = await _context.Accounts
+            .Where(account => account.Id != existing.Id)
+            .SingleAsync();
+        Assert.Equal("New Card", created.AccountName);
+        Assert.Equal(AccountType.CreditCard, created.Type);
+        Assert.Equal(23.99m, created.CreditCardAprPercent);
+        Assert.Null(created.SavingsApyPercent);
+    }
+
+    [Fact]
+    public async Task ImportAccountsAsync_WhenAnyRowInvalid_RollsBackAllChanges()
+    {
+        var userId = Guid.NewGuid();
+
+        var csv = "Id,AccountName,Balance,Type,CreditCardAprPercent,SavingsApyPercent\n" +
+                  ",Good Checking,100,Checking,,\n" +
+                  ",Broken Type,200,NotAType,,\n";
+
+        await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
+
+        await Assert.ThrowsAsync<ArgumentException>(() => _service.ImportAccountsAsync(
+            stream,
+            "accounts.csv",
+            userId,
+            "owner",
+            isAdministrator: false,
+            targetUserId: null));
+
+        Assert.Equal(0, await _context.Accounts.CountAsync());
+    }
+
+    [Fact]
+    public async Task ExportAccountsAsync_NonAdminWithTargetUser_ThrowsUnauthorized()
+    {
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _service.ExportAccountsAsync(
+            Guid.NewGuid(),
+            isAdministrator: false,
+            targetUserId: Guid.NewGuid(),
+            format: BankAccountFileFormat.Csv));
     }
 }

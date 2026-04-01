@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using Flux.Api.IntegrationTests.TestInfrastructure;
 using Microsoft.AspNetCore.Mvc.Testing;
 
@@ -230,5 +232,72 @@ public sealed class AccountOwnershipIntegrationTests : IClassFixture<OwnershipTe
         });
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ExportCsv_AsAuthenticatedMember_ReturnsCsvAttachment()
+    {
+        var response = await _fixture.MemberClient.GetAsync("/api/bankaccounts/export/csv");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("text/csv", response.Content.Headers.ContentType?.MediaType);
+        Assert.NotNull(response.Content.Headers.ContentDisposition);
+
+        var csv = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Id,AccountName,Balance,Type", csv);
+    }
+
+    [Fact]
+    public async Task ImportCsv_WithValidRows_Returns200AndCreatesAccounts()
+    {
+        var before = await _fixture.MemberClient.GetAsync("/api/bankaccounts");
+        before.EnsureSuccessStatusCode();
+        var beforeAccounts = await before.Content.ReadFromJsonAsync<List<OwnershipTestFixture.AccountDto>>();
+
+        var csv = "Id,AccountName,Balance,Type,CreditCardAprPercent,SavingsApyPercent\n" +
+                  ",Imported Checking,250,Checking,,\n";
+
+        using var form = new MultipartFormDataContent();
+        form.Add(new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(csv))), "file", "import.csv");
+
+        var response = await _fixture.MemberClient.PostAsync("/api/bankaccounts/import", form);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var payload = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(payload);
+        Assert.Equal(1, json.RootElement.GetProperty("rowsProcessed").GetInt32());
+        Assert.Equal(1, json.RootElement.GetProperty("createdCount").GetInt32());
+
+        var after = await _fixture.MemberClient.GetAsync("/api/bankaccounts");
+        after.EnsureSuccessStatusCode();
+        var afterAccounts = await after.Content.ReadFromJsonAsync<List<OwnershipTestFixture.AccountDto>>();
+        Assert.NotNull(beforeAccounts);
+        Assert.NotNull(afterAccounts);
+        Assert.Equal(beforeAccounts!.Count + 1, afterAccounts!.Count);
+    }
+
+    [Fact]
+    public async Task ImportCsv_WithInvalidType_Returns400AndRollsBack()
+    {
+        var before = await _fixture.MemberClient.GetAsync("/api/bankaccounts");
+        before.EnsureSuccessStatusCode();
+        var beforeAccounts = await before.Content.ReadFromJsonAsync<List<OwnershipTestFixture.AccountDto>>();
+
+        var csv = "Id,AccountName,Balance,Type,CreditCardAprPercent,SavingsApyPercent\n" +
+                  ",Good Row,120,Checking,,\n" +
+                  ",Bad Row,150,NotAType,,\n";
+
+        using var form = new MultipartFormDataContent();
+        form.Add(new StreamContent(new MemoryStream(Encoding.UTF8.GetBytes(csv))), "file", "invalid.csv");
+
+        var response = await _fixture.MemberClient.PostAsync("/api/bankaccounts/import", form);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var after = await _fixture.MemberClient.GetAsync("/api/bankaccounts");
+        after.EnsureSuccessStatusCode();
+        var afterAccounts = await after.Content.ReadFromJsonAsync<List<OwnershipTestFixture.AccountDto>>();
+        Assert.NotNull(beforeAccounts);
+        Assert.NotNull(afterAccounts);
+        Assert.Equal(beforeAccounts!.Count, afterAccounts!.Count);
     }
 }

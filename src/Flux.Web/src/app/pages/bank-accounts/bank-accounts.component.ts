@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { LoadingComponent } from '../../components/loading/loading.component';
-import { BankAccountService, CreateBankAccountRequest } from '../../services/bank-account.service';
+import { BankAccountImportResult, BankAccountService, CreateBankAccountRequest } from '../../services/bank-account.service';
 import { Router } from '@angular/router';
 import {
   BankAccount,
@@ -48,6 +48,13 @@ export class BankAccountsComponent implements OnInit {
   accountTypeInsights: AccountTypeInsight[] = [];
 
   isCreating = false;
+  importResult: BankAccountImportResult | null = null;
+  importFileName: string | null = null;
+  importError: string | null = null;
+  importInProgress = false;
+  exportInProgress = false;
+  templateDownloadInProgress = false;
+  targetUserId = '';
 
   newAccount: Partial<BankAccount> = {
     accountName: '',
@@ -148,6 +155,59 @@ export class BankAccountsComponent implements OnInit {
     if (!this.isCreating) {
       this.resetForm();
     }
+  }
+
+  onImportFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const lowercaseName = file.name.toLowerCase();
+    if (!lowercaseName.endsWith('.csv') && !lowercaseName.endsWith('.xlsx')) {
+      this.importError = 'Only .csv and .xlsx files are supported.';
+      this.importResult = null;
+      input.value = '';
+      return;
+    }
+
+    this.importInProgress = true;
+    this.importError = null;
+    this.importResult = null;
+
+    this.bankAccountService.importAccounts(file, this.targetUserId).subscribe({
+      next: (result) => {
+        this.importResult = result;
+        this.importFileName = file.name;
+        this.importInProgress = false;
+        this.loadAccounts();
+        input.value = '';
+      },
+      error: (err) => {
+        console.error('Error importing accounts:', err);
+        this.importError = err?.error?.error ?? err?.error?.message ?? 'Import failed. Please check your file and try again.';
+        this.importInProgress = false;
+        input.value = '';
+      }
+    });
+  }
+
+  exportCsv(): void {
+    this.exportByType('csv');
+  }
+
+  exportXlsx(): void {
+    this.exportByType('xlsx');
+  }
+
+  downloadTemplateCsv(): void {
+    this.downloadTemplate('csv');
+  }
+
+  downloadTemplateXlsx(): void {
+    this.downloadTemplate('xlsx');
   }
 
   createAccount(): void {
@@ -264,5 +324,65 @@ export class BankAccountsComponent implements OnInit {
     }
 
     return Number(value);
+  }
+
+  private exportByType(type: 'csv' | 'xlsx'): void {
+    this.exportInProgress = true;
+    this.importError = null;
+
+    const stream$ = type === 'csv'
+      ? this.bankAccountService.exportAccountsCsv(this.targetUserId)
+      : this.bankAccountService.exportAccountsXlsx(this.targetUserId);
+
+    stream$.subscribe({
+      next: (blob) => {
+        const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const filename = type === 'csv'
+          ? `bank-accounts-${dateSuffix}.csv`
+          : `bank-accounts-${dateSuffix}.xlsx`;
+        this.triggerDownload(blob, filename);
+        this.exportInProgress = false;
+      },
+      error: (err) => {
+        console.error('Error exporting accounts:', err);
+        this.importError = err?.error?.error ?? err?.error?.message ?? 'Export failed. Please try again.';
+        this.exportInProgress = false;
+      }
+    });
+  }
+
+  private downloadTemplate(type: 'csv' | 'xlsx'): void {
+    this.templateDownloadInProgress = true;
+    this.importError = null;
+
+    const stream$ = type === 'csv'
+      ? this.bankAccountService.downloadCsvTemplate()
+      : this.bankAccountService.downloadXlsxTemplate();
+
+    stream$.subscribe({
+      next: (blob) => {
+        const filename = type === 'csv'
+          ? 'bank-accounts-template.csv'
+          : 'bank-accounts-template.xlsx';
+        this.triggerDownload(blob, filename);
+        this.templateDownloadInProgress = false;
+      },
+      error: (err) => {
+        console.error('Error downloading template:', err);
+        this.importError = err?.error?.error ?? err?.error?.message ?? 'Template download failed. Please try again.';
+        this.templateDownloadInProgress = false;
+      }
+    });
+  }
+
+  private triggerDownload(blob: Blob, filename: string): void {
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(objectUrl);
   }
 }
