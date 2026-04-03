@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flux.Services.Tests", "test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flux.Api.IntegrationTests", "tests\Flux.Api.IntegrationTests\Flux.Api.IntegrationTests.csproj", "{49695D59-59BC-4559-82C9-2C75072E6813}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flux.Auth.Api", "Flux.Auth.Api\Flux.Auth.Api.csproj", "{EA657498-37C6-47EE-A159-5AE9A23C0B0F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,18 @@ Global
 		{49695D59-59BC-4559-82C9-2C75072E6813}.Release|x64.Build.0 = Release|Any CPU
 		{49695D59-59BC-4559-82C9-2C75072E6813}.Release|x86.ActiveCfg = Release|Any CPU
 		{49695D59-59BC-4559-82C9-2C75072E6813}.Release|x86.Build.0 = Release|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Debug|x64.Build.0 = Debug|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Debug|x86.Build.0 = Debug|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Release|x64.ActiveCfg = Release|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Release|x64.Build.0 = Release|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Release|x86.ActiveCfg = Release|Any CPU
+		{EA657498-37C6-47EE-A159-5AE9A23C0B0F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

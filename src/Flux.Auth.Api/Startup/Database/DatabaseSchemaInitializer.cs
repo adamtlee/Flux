@@ -2,7 +2,7 @@ using System.Data;
 using Flux.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Flux.Api.Startup;
+namespace Flux.Auth.Api.Startup;
 
 public sealed class DatabaseSchemaInitializer(BankDbContext context) : IDatabaseSchemaInitializer
 {

@@ -1,4 +1,12 @@
 {
+  "/api/auth": {
+    "target": "http://localhost:5272",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/api/auth": "/api/auth"
+    }
+  },
   "/api": {
     "target": "http://localhost:5271",
     "secure": false,

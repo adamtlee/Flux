@@ -1,0 +1,18 @@
+# Build stage for .NET Auth API
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+# Copy everything and build
+COPY . .
+WORKDIR /src/Flux.Auth.Api
+RUN dotnet restore "Flux.Auth.Api.csproj"
+RUN dotnet publish "Flux.Auth.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish ./
+
+ENV ASPNETCORE_URLS=http://+:5001
+EXPOSE 5001
+ENTRYPOINT ["dotnet", "Flux.Auth.Api.dll"]

@@ -9,6 +9,14 @@ WORKDIR /src/Flux.Api
 RUN dotnet restore "Flux.Api.csproj"
 RUN dotnet publish "Flux.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
+# --- Build Auth API ---
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-auth
+WORKDIR /src
+COPY . .
+WORKDIR /src/Flux.Auth.Api
+RUN dotnet restore "Flux.Auth.Api.csproj"
+RUN dotnet publish "Flux.Auth.Api.csproj" -c Release -o /auth/publish /p:UseAppHost=false
+
 # --- Build Web ---
 FROM node:20 AS build-web
 WORKDIR /app
@@ -31,6 +39,7 @@ RUN apt-get update \
 # Create app directory and copy API publish
 WORKDIR /app
 COPY --from=build-api /app/publish ./
+COPY --from=build-auth /auth/publish /app/auth
 
 # Copy built frontend into nginx www root
 RUN rm -rf /var/www/html/*
@@ -47,6 +56,8 @@ RUN mkdir -p /app/data
 
 # Environment defaults
 ENV ASPNETCORE_URLS=http://+:5000
+ENV ASPNETCORE_URLS_AUTH=http://+:5001
+ENV AuthService__BaseUrl=http://127.0.0.1:5001
 ENV ConnectionStrings__DefaultConnection="Data Source=/app/data/bank.db"
 
 EXPOSE 80

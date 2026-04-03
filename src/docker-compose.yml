@@ -9,6 +9,19 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:5000
+      - AuthService__BaseUrl=http://auth:5001
+    volumes:
+      - ./Flux.Api/data:/app/data
+
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
+    ports:
+      - "5001:5001"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5001
     volumes:
       - ./Flux.Api/data:/app/data
 
@@ -20,3 +33,4 @@ services:
       - "80:80"
     depends_on:
       - api
+      - auth

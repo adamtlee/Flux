@@ -1,16 +1,43 @@
-# Flux
+# Flux Web
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.22.
+This Angular application is the frontend for the Flux banking analytics system. It communicates with two backend services:
+- **Auth service** (`http://localhost:5272`) — handles registration and login
+- **Main API service** (`http://localhost:5271`) — provides bank account and analytics endpoints
 
 ## Development server
 
-To start a local development server, run:
+To start the local development server, run:
+
+```bash
+npm start
+```
+
+Or using Angular CLI directly:
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Once the server is running in your browser navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+
+### Local development setup
+
+Make sure the backend services are running before starting the Angular dev server:
+
+```bash
+# Terminal 1: Start the Auth microservice (listens on 5272)
+cd ../Flux.Auth.Api && dotnet run
+
+# Terminal 2: Start the Main API (listens on 5271)
+cd ../Flux.Api && dotnet run
+
+# Terminal 3: Start the Angular dev server (listens on 4200, proxies to 5272 & 5271)
+cd Flux.Web && npm start
+```
+
+The `proxy.conf.json` file automatically routes API requests:
+- `/api/auth/*` → `http://localhost:5272`
+- `/api/*` → `http://localhost:5271`
 
 ## Code scaffolding
 

@@ -1,10 +1,9 @@
-using System.Net.Http.Json;
 using Flux.Services;
 using Flux.Services.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Flux.Api.Controllers;
+namespace Flux.Auth.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -12,17 +11,10 @@ namespace Flux.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IConfiguration _configuration;
 
-    public AuthController(
-        IAuthService authService,
-        IHttpClientFactory httpClientFactory,
-        IConfiguration configuration)
+    public AuthController(IAuthService authService)
     {
         _authService = authService;
-        _httpClientFactory = httpClientFactory;
-        _configuration = configuration;
     }
 
     [AllowAnonymous]
@@ -32,11 +24,6 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
-        if (UseRemoteAuthService())
-        {
-            return await ProxyToAuthServiceAsync("register", request);
-        }
-
         try
         {
             var tokenResponse = await _authService.RegisterAsync(request);
@@ -59,11 +46,6 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
     {
-        if (UseRemoteAuthService())
-        {
-            return await ProxyToAuthServiceAsync("login", request);
-        }
-
         try
         {
             var tokenResponse = await _authService.LoginAsync(request);
@@ -77,28 +59,5 @@ public class AuthController : ControllerBase
         {
             return Unauthorized(new { message = ex.Message });
         }
-    }
-
-    private bool UseRemoteAuthService()
-    {
-        var baseUrl = _configuration["AuthService:BaseUrl"];
-        return !string.IsNullOrWhiteSpace(baseUrl);
-    }
-
-    private async Task<ActionResult<AuthResponse>> ProxyToAuthServiceAsync<TRequest>(string action, TRequest request)
-    {
-        var baseUrl = _configuration["AuthService:BaseUrl"]!;
-        var client = _httpClientFactory.CreateClient();
-        var endpoint = $"{baseUrl.TrimEnd('/')}/api/auth/{action}";
-
-        var response = await client.PostAsJsonAsync(endpoint, request);
-        var payload = await response.Content.ReadAsStringAsync();
-
-        return new ContentResult
-        {
-            StatusCode = (int)response.StatusCode,
-            Content = payload,
-            ContentType = "application/json"
-        };
     }
 }
