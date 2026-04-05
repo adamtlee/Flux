@@ -41,7 +41,7 @@ public class BankAccountService : IBankAccountService
             .ToListAsync();
     }
 
-    public async Task<BankAccount?> GetAccountByIdAsync(Guid id, Guid userId, bool isAdministrator)
+    public async Task<BankAccount?> GetAccountByIdAsync(int id, Guid userId, bool isAdministrator)
     {
         var account = await _context.Accounts.FindAsync(id);
         if (account is null)
@@ -73,7 +73,7 @@ public class BankAccountService : IBankAccountService
         return account;
     }
 
-    public async Task<bool> UpdateAccountAsync(Guid id, BankAccount account, Guid userId, bool isAdministrator)
+    public async Task<bool> UpdateAccountAsync(int id, BankAccount account, Guid userId, bool isAdministrator)
     {
         if (id != account.Id) return false;
 
@@ -102,7 +102,7 @@ public class BankAccountService : IBankAccountService
         return true;
     }
 
-    public async Task<bool> DeleteAccountAsync(Guid id, Guid userId, bool isAdministrator)
+    public async Task<bool> DeleteAccountAsync(int id, Guid userId, bool isAdministrator)
     {
         var account = await _context.Accounts.FindAsync(id);
         if (account == null) return false;
@@ -197,7 +197,6 @@ public class BankAccountService : IBankAccountService
 
             var newAccount = new BankAccount
             {
-                Id = row.Id ?? Guid.NewGuid(),
                 OwnerUserId = effectiveUserId,
                 Owner = effectiveUsername,
                 AccountName = string.IsNullOrWhiteSpace(row.AccountName) ? effectiveUsername : row.AccountName.Trim(),
@@ -208,6 +207,11 @@ public class BankAccountService : IBankAccountService
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
+
+            if (row.Id.HasValue)
+            {
+                newAccount.Id = row.Id.Value;
+            }
 
             ValidateRateFields(newAccount);
             NormalizeRateFields(newAccount);
@@ -465,12 +469,12 @@ public class BankAccountService : IBankAccountService
     private static ParsedImportRow ParseRow(Dictionary<string, string?> rawRow, int rowNumber)
     {
         var idValue = (rawRow["Id"] ?? string.Empty).Trim();
-        Guid? id = null;
+        int? id = null;
         if (!string.IsNullOrWhiteSpace(idValue))
         {
-            if (!Guid.TryParse(idValue, out var parsedId))
+            if (!int.TryParse(idValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedId) || parsedId <= 0)
             {
-                throw new ArgumentException($"Row {rowNumber}: Id must be a valid GUID.");
+                throw new ArgumentException($"Row {rowNumber}: Id must be a positive integer.");
             }
 
             id = parsedId;
@@ -651,7 +655,7 @@ public class BankAccountService : IBankAccountService
 
     private sealed record ParsedImportRow(
         int RowNumber,
-        Guid? Id,
+        int? Id,
         string AccountName,
         decimal Balance,
         AccountType Type,

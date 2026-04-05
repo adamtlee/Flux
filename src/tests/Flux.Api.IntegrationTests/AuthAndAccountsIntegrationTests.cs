@@ -78,7 +78,7 @@ public sealed class AuthAndAccountsIntegrationTests : IClassFixture<FluxApiFacto
         string Role);
 
     private sealed record BankAccountDto(
-        Guid Id,
+        int Id,
         Guid OwnerUserId,
         string AccountName,
         string Owner,

@@ -22,7 +22,7 @@ public sealed record SavingsPortfolioSummary(
     decimal TotalProjectedAnnualInterest);
 
 public sealed record CreditCardRateAnalytics(
-    Guid AccountId,
+    int AccountId,
     string AccountName,
     decimal Balance,
     decimal AprPercent,
@@ -33,7 +33,7 @@ public sealed record CreditCardRateAnalytics(
     int AprRank);
 
 public sealed record SavingsRateAnalytics(
-    Guid AccountId,
+    int AccountId,
     string AccountName,
     decimal Balance,
     decimal ApyPercent,
@@ -49,7 +49,7 @@ public sealed record CompoundingProjection(
     decimal EndingBalance);
 
 public sealed record AccountRateAnalyticsResponse(
-    Guid AccountId,
+    int AccountId,
     string AccountName,
     AccountType AccountType,
     CreditCardRateAnalytics? CreditCard,

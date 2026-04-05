@@ -97,7 +97,7 @@ public sealed class AnalyticsIntegrationTests : IClassFixture<OwnershipTestFixtu
         Assert.NotNull(analytics.Savings);
     }
 
-    private sealed record AccountCreateDto(Guid Id);
+    private sealed record AccountCreateDto(int Id);
 
     private sealed record PortfolioAnalyticsDto(
         List<CreditCardAnalyticsDto> CreditCards,
@@ -119,7 +119,7 @@ public sealed class AnalyticsIntegrationTests : IClassFixture<OwnershipTestFixtu
         decimal TotalProjectedAnnualInterest);
 
     private sealed record CreditCardAnalyticsDto(
-        Guid AccountId,
+        int AccountId,
         string AccountName,
         decimal Balance,
         decimal AprPercent,
@@ -130,7 +130,7 @@ public sealed class AnalyticsIntegrationTests : IClassFixture<OwnershipTestFixtu
         int AprRank);
 
     private sealed record SavingsAnalyticsDto(
-        Guid AccountId,
+        int AccountId,
         string AccountName,
         decimal Balance,
         decimal ApyPercent,
@@ -146,7 +146,7 @@ public sealed class AnalyticsIntegrationTests : IClassFixture<OwnershipTestFixtu
         decimal EndingBalance);
 
     private sealed record AccountAnalyticsDto(
-        Guid AccountId,
+        int AccountId,
         string AccountName,
         AccountTypeDto AccountType,
         CreditCardAnalyticsDto? CreditCard,

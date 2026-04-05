@@ -261,7 +261,7 @@ export class BankAccountsComponent implements OnInit {
     }
   }
 
-  showAccountId(id: string): void {
+  showAccountId(id: number): void {
     this.router.navigate(['/accounts', id]);
   }
 
@@ -314,7 +314,7 @@ export class BankAccountsComponent implements OnInit {
     }).format(value)}%`;
   }
 
-  trackByAccountId(_: number, item: { accountId: string }): string {
+  trackByAccountId(_: number, item: { accountId: number }): number {
     return item.accountId;
   }
 

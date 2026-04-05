@@ -34,7 +34,7 @@ export class BankAccountService {
     return this.http.get<BankAccount[]>(this.apiUrl);
   }
 
-  getAccountById(id: string): Observable<BankAccount> {
+  getAccountById(id: number): Observable<BankAccount> {
     return this.http.get<BankAccount>(`${this.apiUrl}/${id}`);
   }
 
@@ -42,11 +42,11 @@ export class BankAccountService {
     return this.http.post<BankAccount>(this.apiUrl, account);
   }
 
-  updateAccount(id: string, account: BankAccount): Observable<void> {
+  updateAccount(id: number, account: BankAccount): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${id}`, account);
   }
 
-  deleteAccount(id: string): Observable<void> {
+  deleteAccount(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
@@ -54,7 +54,7 @@ export class BankAccountService {
     return this.http.get<PortfolioRateAnalyticsResponse>(`${this.apiUrl}/analytics/portfolio`);
   }
 
-  getAccountRateAnalytics(id: string): Observable<AccountRateAnalyticsResponse> {
+  getAccountRateAnalytics(id: number): Observable<AccountRateAnalyticsResponse> {
     return this.http.get<AccountRateAnalyticsResponse>(`${this.apiUrl}/${id}/analytics`);
   }
 

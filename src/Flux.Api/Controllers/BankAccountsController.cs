@@ -117,7 +117,7 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<AccountRateAnalyticsResponse>> GetAccountAnalytics(Guid id)
+    public async Task<ActionResult<AccountRateAnalyticsResponse>> GetAccountAnalytics(int id)
     {
         try
         {
@@ -128,10 +128,10 @@ public class BankAccountsController : ControllerBase
 
             var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
 
-            if (id == Guid.Empty)
+            if (id <= 0)
             {
                 _logger.LogWarning("Invalid account ID provided for analytics: {AccountId}", id);
-                return BadRequest(new { message = "Account ID cannot be empty." });
+                return BadRequest(new { message = "Account ID must be a positive integer." });
             }
 
             _logger.LogInformation("Retrieving analytics for bank account with ID: {AccountId}", id);
@@ -167,7 +167,7 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<BankAccount>> GetAccount(Guid id)
+    public async Task<ActionResult<BankAccount>> GetAccount(int id)
     {
         try
         {
@@ -178,10 +178,10 @@ public class BankAccountsController : ControllerBase
 
             var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
 
-            if (id == Guid.Empty)
+            if (id <= 0)
             {
                 _logger.LogWarning("Invalid account ID provided: {AccountId}", id);
-                return BadRequest(new { message = "Account ID cannot be empty." });
+                return BadRequest(new { message = "Account ID must be a positive integer." });
             }
 
             _logger.LogInformation("Retrieving bank account with ID: {AccountId}", id);
@@ -284,7 +284,7 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> PutAccount(Guid id, [FromBody] BankAccount account)
+    public async Task<IActionResult> PutAccount(int id, [FromBody] BankAccount account)
     {
         try
         {
@@ -295,10 +295,10 @@ public class BankAccountsController : ControllerBase
 
             var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
 
-            if (id == Guid.Empty)
+            if (id <= 0)
             {
                 _logger.LogWarning("Invalid account ID provided for update: {AccountId}", id);
-                return BadRequest(new { message = "Account ID cannot be empty." });
+                return BadRequest(new { message = "Account ID must be a positive integer." });
             }
 
             if (account == null)
@@ -357,7 +357,7 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> DeleteAccount(Guid id)
+    public async Task<IActionResult> DeleteAccount(int id)
     {
         try
         {
@@ -368,10 +368,10 @@ public class BankAccountsController : ControllerBase
 
             var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
 
-            if (id == Guid.Empty)
+            if (id <= 0)
             {
                 _logger.LogWarning("Invalid account ID provided for deletion: {AccountId}", id);
-                return BadRequest(new { message = "Account ID cannot be empty." });
+                return BadRequest(new { message = "Account ID must be a positive integer." });
             }
 
             _logger.LogInformation("Deleting bank account with ID: {AccountId}", id);

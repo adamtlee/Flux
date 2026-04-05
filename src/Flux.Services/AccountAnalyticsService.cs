@@ -50,7 +50,7 @@ public sealed class AccountAnalyticsService : IAccountAnalyticsService
             SavingsSummary: savingsSummary);
     }
 
-    public async Task<AccountRateAnalyticsResponse?> GetAccountAnalyticsByIdAsync(Guid accountId, Guid userId, bool isAdministrator)
+    public async Task<AccountRateAnalyticsResponse?> GetAccountAnalyticsByIdAsync(int accountId, Guid userId, bool isAdministrator)
     {
         var account = await _context.Accounts.AsNoTracking().SingleOrDefaultAsync(a => a.Id == accountId);
         if (account is null)

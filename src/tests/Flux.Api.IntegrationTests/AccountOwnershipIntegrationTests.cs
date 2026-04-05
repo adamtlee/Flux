@@ -17,8 +17,8 @@ public sealed class OwnershipTestFixture : IAsyncLifetime
     public FluxApiFactory Factory { get; private set; } = null!;
     public HttpClient AdminClient { get; private set; } = null!;
     public HttpClient MemberClient { get; private set; } = null!;
-    public Guid AdminAccountId { get; private set; }
-    public Guid MemberAccountId { get; private set; }
+    public int AdminAccountId { get; private set; }
+    public int MemberAccountId { get; private set; }
 
     public async Task InitializeAsync()
     {
@@ -61,7 +61,7 @@ public sealed class OwnershipTestFixture : IAsyncLifetime
         return dto!.AccessToken;
     }
 
-    internal static async Task<Guid> CreateAccountAsync(HttpClient client, string accountName)
+    internal static async Task<int> CreateAccountAsync(HttpClient client, string accountName)
     {
         var response = await client.PostAsJsonAsync("/api/bankaccounts", new
         {
@@ -75,7 +75,7 @@ public sealed class OwnershipTestFixture : IAsyncLifetime
     }
 
     internal sealed record AuthDto(string AccessToken, string TokenType, DateTime ExpiresAtUtc, string Username, string Role);
-    internal sealed record AccountDto(Guid Id, Guid OwnerUserId, string AccountName, string Owner, decimal Balance, int Type, DateTime CreatedAt, DateTime UpdatedAt);
+    internal sealed record AccountDto(int Id, Guid OwnerUserId, string AccountName, string Owner, decimal Balance, int Type, DateTime CreatedAt, DateTime UpdatedAt);
 }
 
 /// <summary>
@@ -120,9 +120,9 @@ public sealed class AccountOwnershipIntegrationTests : IClassFixture<OwnershipTe
     }
 
     [Fact]
-    public async Task GetById_WithEmptyGuid_Returns400()
+    public async Task GetById_WithNonPositiveId_Returns400()
     {
-        var response = await _fixture.AdminClient.GetAsync($"/api/bankaccounts/{Guid.Empty}");
+        var response = await _fixture.AdminClient.GetAsync("/api/bankaccounts/0");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

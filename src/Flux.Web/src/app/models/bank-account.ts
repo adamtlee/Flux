@@ -1,5 +1,5 @@
 export interface BankAccount {
-  id: string;
+  id: number;
   accountName: string;
   owner: string;
   balance: number;
@@ -24,7 +24,7 @@ export interface CompoundingProjection {
 }
 
 export interface CreditCardRateAnalytics {
-  accountId: string;
+  accountId: number;
   accountName: string;
   balance: number;
   aprPercent: number;
@@ -36,7 +36,7 @@ export interface CreditCardRateAnalytics {
 }
 
 export interface SavingsRateAnalytics {
-  accountId: string;
+  accountId: number;
   accountName: string;
   balance: number;
   apyPercent: number;
@@ -69,7 +69,7 @@ export interface PortfolioRateAnalyticsResponse {
 }
 
 export interface AccountRateAnalyticsResponse {
-  accountId: string;
+  accountId: number;
   accountName: string;
   accountType: AccountType;
   creditCard: CreditCardRateAnalytics | null;

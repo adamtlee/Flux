@@ -2,7 +2,7 @@ namespace Flux.Data.Models;
 
 public class BankAccount
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public int Id { get; set; }
 
     public Guid OwnerUserId { get; set; }
 

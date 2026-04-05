@@ -5,5 +5,5 @@ namespace Flux.Services;
 public interface IAccountAnalyticsService
 {
     Task<PortfolioRateAnalyticsResponse> GetPortfolioAnalyticsAsync(Guid userId, bool isAdministrator);
-    Task<AccountRateAnalyticsResponse?> GetAccountAnalyticsByIdAsync(Guid accountId, Guid userId, bool isAdministrator);
+    Task<AccountRateAnalyticsResponse?> GetAccountAnalyticsByIdAsync(int accountId, Guid userId, bool isAdministrator);
 }

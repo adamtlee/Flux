@@ -5,10 +5,10 @@ namespace Flux.Services;
 public interface IBankAccountService
 {
     Task<IEnumerable<BankAccount>> GetAllAccountsAsync(Guid userId, bool isAdministrator);
-    Task<BankAccount?> GetAccountByIdAsync(Guid id, Guid userId, bool isAdministrator);
+    Task<BankAccount?> GetAccountByIdAsync(int id, Guid userId, bool isAdministrator);
     Task<BankAccount> CreateAccountAsync(BankAccount account, Guid userId, string username);
-    Task<bool> UpdateAccountAsync(Guid id, BankAccount account, Guid userId, bool isAdministrator);
-    Task<bool> DeleteAccountAsync(Guid id, Guid userId, bool isAdministrator);
+    Task<bool> UpdateAccountAsync(int id, BankAccount account, Guid userId, bool isAdministrator);
+    Task<bool> DeleteAccountAsync(int id, Guid userId, bool isAdministrator);
     Task<BankAccountImportResult> ImportAccountsAsync(
         Stream fileStream,
         string fileName,

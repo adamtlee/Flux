@@ -27,8 +27,9 @@ export class BankAccountDetailComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
+    const idParam = this.route.snapshot.paramMap.get('id');
+    const id = Number(idParam);
+    if (!idParam || !Number.isInteger(id) || id <= 0) {
       this.error = 'No account ID provided.';
       this.loading = false;
       return;
