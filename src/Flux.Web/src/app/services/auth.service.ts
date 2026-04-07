@@ -1,14 +1,21 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap, catchError } from 'rxjs';
-import { of } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, tap, throwError } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
+
+export type ApplicationRole = 'Administrator' | 'PremiumMember' | 'FreeMember';
+
+export interface AuthUser {
+  username: string;
+  role: ApplicationRole | null;
+}
 
 export interface AuthResponse {
   accessToken: string;
   tokenType: string;
   expiresAtUtc: string;
   username: string;
+  role: ApplicationRole;
 }
 
 export interface LoginRequest {
@@ -32,7 +39,7 @@ export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasValidToken());
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  private currentUserSubject = new BehaviorSubject<string | null>(this.getCurrentUser());
+  private currentUserSubject = new BehaviorSubject<AuthUser | null>(this.getCurrentUser());
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor() {}
@@ -56,7 +63,7 @@ export class AuthService {
     }
   }
 
-  private getCurrentUser(): string | null {
+  private getCurrentUser(): AuthUser | null {
     if (!this.isBrowser()) return null;
 
     const token = this.getToken();
@@ -64,7 +71,15 @@ export class AuthService {
 
     try {
       const decoded = this.decodeToken(token);
-      return decoded.unique_name || decoded.sub || null;
+      const username = decoded.unique_name || decoded.name || decoded.sub || null;
+      if (!username) {
+        return null;
+      }
+
+      return {
+        username,
+        role: this.extractRole(decoded)
+      };
     } catch {
       return null;
     }
@@ -84,7 +99,7 @@ export class AuthService {
         tap(response => this.handleAuthResponse(response)),
         catchError(error => {
           console.error('Registration error:', error);
-          throw error;
+          return throwError(() => error);
         })
       );
   }
@@ -95,7 +110,7 @@ export class AuthService {
         tap(response => this.handleAuthResponse(response)),
         catchError(error => {
           console.error('Login error:', error);
-          throw error;
+          return throwError(() => error);
         })
       );
   }
@@ -103,7 +118,10 @@ export class AuthService {
   private handleAuthResponse(response: AuthResponse): void {
     this.setToken(response.accessToken);
     this.isAuthenticatedSubject.next(true);
-    this.currentUserSubject.next(response.username);
+    this.currentUserSubject.next({
+      username: response.username,
+      role: response.role ?? this.getCurrentUser()?.role ?? null
+    });
   }
 
   logout(): void {
@@ -131,7 +149,18 @@ export class AuthService {
     return this.hasValidToken();
   }
 
-  getCurrentUserSync(): string | null {
+  getCurrentUserSync(): AuthUser | null {
     return this.getCurrentUser();
+  }
+
+  private extractRole(decodedToken: Record<string, unknown>): ApplicationRole | null {
+    const rawRole = decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
+      ?? decodedToken['role'];
+
+    if (rawRole === 'Administrator' || rawRole === 'PremiumMember' || rawRole === 'FreeMember') {
+      return rawRole;
+    }
+
+    return null;
   }
 }

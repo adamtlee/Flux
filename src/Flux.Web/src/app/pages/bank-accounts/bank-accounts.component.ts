@@ -1,11 +1,11 @@
-import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { isPlatformBrowser } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { LoadingComponent } from '../../components/loading/loading.component';
 import { BankAccountImportResult, BankAccountService, CreateBankAccountRequest } from '../../services/bank-account.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   BankAccount,
   AccountType,
@@ -32,7 +32,7 @@ interface AccountTypeInsight {
   templateUrl: './bank-accounts.component.html',
   styleUrl: './bank-accounts.component.scss'
 })
-export class BankAccountsComponent implements OnInit {
+export class BankAccountsComponent implements OnInit, OnDestroy {
   accounts: BankAccount[] = [];
   portfolioAnalytics: PortfolioRateAnalyticsResponse | null = null;
   loading = true;
@@ -71,16 +71,28 @@ export class BankAccountsComponent implements OnInit {
   ];
 
   private platformId = inject(PLATFORM_ID);
+  private destroy$ = new Subject<void>();
+  private pendingSection: string | null = null;
 
-  constructor(private bankAccountService: BankAccountService, private router: Router) { }
+  constructor(
+    private bankAccountService: BankAccountService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) { }
 
   ngOnInit(): void {
     // Only load accounts on the browser, not during server-side rendering/prerendering
     if (isPlatformBrowser(this.platformId)) {
+      this.listenToNavigationState();
       this.loadAccounts();
     } else {
       this.loading = false;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadAccounts(): void {
@@ -97,6 +109,7 @@ export class BankAccountsComponent implements OnInit {
         this.calculateTotalBalance();
         this.refreshInsights();
         this.loading = false;
+        this.scrollToRequestedSection();
       },
       error: (err) => {
         console.error('Error loading accounts:', err);
@@ -148,6 +161,7 @@ export class BankAccountsComponent implements OnInit {
 
   setActiveTab(tab: AccountsTab): void {
     this.activeTab = tab;
+    this.scrollToRequestedSection();
   }
 
   toggleCreateForm(): void {
@@ -384,5 +398,56 @@ export class BankAccountsComponent implements OnInit {
     link.click();
     link.remove();
     URL.revokeObjectURL(objectUrl);
+  }
+
+  private listenToNavigationState(): void {
+    this.route.queryParamMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((params) => {
+        const tab = params.get('tab');
+        if (tab === 'accounts' || tab === 'insights') {
+          this.activeTab = tab;
+        }
+
+        this.pendingSection = params.get('section');
+        this.scrollToRequestedSection();
+      });
+  }
+
+  private scrollToRequestedSection(): void {
+    if (!isPlatformBrowser(this.platformId) || !this.pendingSection || this.loading) {
+      return;
+    }
+
+    const targetId = this.resolveSectionId(this.pendingSection);
+    if (!targetId) {
+      this.pendingSection = null;
+      return;
+    }
+
+    setTimeout(() => {
+      const section = document.getElementById(targetId);
+      if (!section) {
+        return;
+      }
+
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.pendingSection = null;
+    }, 0);
+  }
+
+  private resolveSectionId(section: string): string | null {
+    switch (section) {
+      case 'chart-summary':
+        return 'chart-summary-section';
+      case 'imports':
+        return 'imports-section';
+      case 'exports':
+        return 'exports-templates-section';
+      case 'account-details':
+        return 'account-details-section';
+      default:
+        return null;
+    }
   }
 }

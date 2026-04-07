@@ -1,45 +1,68 @@
-<!-- Navbar -->
-<nav class="navbar">
-  <div class="nav-container">
-    <div class="nav-logo">
-      <a routerLink="/">Flux</a>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="topbar-left">
+      <a routerLink="/" class="brand-link">Flux</a>
     </div>
-    <div class="nav-menu">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-link">
-        Home
+
+    <div class="topbar-right">
+      <span class="current-user" *ngIf="currentUser$ | async as user">Welcome, {{ user.username }}</span>
+      <button
+        *ngIf="isAuthenticated$ | async"
+        (click)="logout()"
+        class="btn btn-logout">
+        Sign Out
+      </button>
+      <a
+        *ngIf="!(isAuthenticated$ | async)"
+        routerLink="/login"
+        class="btn btn-login">
+        Sign In
       </a>
-      <a routerLink="/accounts" routerLinkActive="active" class="nav-link" *ngIf="isAuthenticated$ | async">
-        Accounts
-      </a>
-      <div class="nav-auth">
-        <span class="current-user" *ngIf="currentUser$ | async as user">
-          Welcome, {{ user }}
-        </span>
-        <button 
-          *ngIf="isAuthenticated$ | async" 
-          (click)="logout()" 
-          class="btn btn-logout">
-          Sign Out
-        </button>
-        <a 
-          *ngIf="!(isAuthenticated$ | async)" 
-          routerLink="/login" 
-          class="btn btn-login">
-          Sign In
-        </a>
-      </div>
     </div>
-  </div>
-</nav>
+  </header>
 
-<!-- Main Content -->
-<main class="main-content">
-  <router-outlet></router-outlet>
-</main>
+  <div class="shell-content" [class.sidebar-collapsed]="isSidebarCollapsed">
+    <button
+      *ngIf="(isAuthenticated$ | async) && isSidebarCollapsed"
+      type="button"
+      class="sidebar-rail-toggle"
+      (click)="toggleSidebar()"
+      aria-label="Expand sidebar"
+      title="Expand sidebar">
+      <span class="hamburger-icon" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </button>
 
-<!-- Footer -->
-<footer class="footer">
-  <div class="footer-content">
-    <p>&copy; 2026 Flux Financial Platform. All rights reserved.</p>
+    <app-sidebar
+      *ngIf="isAuthenticated$ | async"
+      [isOpen]="isSidebarOpen"
+      [isCollapsed]="isSidebarCollapsed"
+      [currentUsername]="(currentUser$ | async)?.username ?? null"
+      [currentRole]="(currentUser$ | async)?.role ?? null"
+      (itemSelected)="onSidebarItemSelected()"
+      (closeRequested)="onSidebarToggleRequested()">
+    </app-sidebar>
+
+    <button
+      *ngIf="isAuthenticated$ | async"
+      type="button"
+      class="sidebar-overlay"
+      [class.open]="isSidebarOpen"
+      (click)="closeSidebar()"
+      aria-label="Close navigation panel">
+    </button>
+
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
   </div>
-</footer>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2026 Flux Financial Platform. All rights reserved.</p>
+    </div>
+  </footer>
+</div>

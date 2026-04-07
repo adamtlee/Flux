@@ -1,0 +1,66 @@
+<aside class="sidebar" [class.open]="isOpen" [class.collapsed]="isCollapsed" aria-label="Primary navigation">
+  <div class="sidebar-header">
+    <div>
+      <p class="eyebrow">Navigation</p>
+      <h2>Workspace</h2>
+    </div>
+    <button
+      type="button"
+      class="close-btn"
+      (click)="requestClose()"
+      [attr.aria-label]="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+      [attr.title]="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+      <span class="hamburger-icon" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </button>
+  </div>
+
+  <div class="profile-block" *ngIf="currentUsername as username">
+    <p class="profile-label">Signed in as</p>
+    <p class="profile-username">{{ username }}</p>
+    <p class="profile-role" *ngIf="currentRole">{{ currentRole }}</p>
+  </div>
+
+  <nav class="menu-section" aria-label="Core options">
+    <p class="section-title">Core</p>
+    <ng-container *ngFor="let item of visiblePrimaryItems">
+      <button *ngIf="item.comingSoon" type="button" class="menu-item disabled" disabled>
+        <span>{{ item.label }}</span>
+        <small>Coming soon</small>
+      </button>
+      <a
+        *ngIf="!item.comingSoon"
+        [routerLink]="item.route"
+        [queryParams]="item.queryParams"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="getActiveMatchOptions(item)"
+        class="menu-item"
+        (click)="onNavItemSelected(item)">
+        <span>{{ item.label }}</span>
+      </a>
+    </ng-container>
+  </nav>
+
+  <nav class="menu-section" aria-label="Additional options" *ngIf="visibleUtilityItems.length > 0">
+    <p class="section-title">Other Options</p>
+    <ng-container *ngFor="let item of visibleUtilityItems">
+      <button *ngIf="item.comingSoon" type="button" class="menu-item disabled" disabled>
+        <span>{{ item.label }}</span>
+        <small>Coming soon</small>
+      </button>
+      <a
+        *ngIf="!item.comingSoon"
+        [routerLink]="item.route"
+        [queryParams]="item.queryParams"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="getActiveMatchOptions(item)"
+        class="menu-item"
+        (click)="onNavItemSelected(item)">
+        <span>{{ item.label }}</span>
+      </a>
+    </ng-container>
+  </nav>
+</aside>
