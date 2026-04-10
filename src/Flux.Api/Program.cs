@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
 using Flux.Data;
 using Flux.Services;
 using Flux.Api.Startup;
@@ -13,6 +15,7 @@ builder.Services.AddDbContext<BankDbContext>(options =>
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
 
 builder.Services.Configure<RateAnalyticsOptions>(builder.Configuration.GetSection(RateAnalyticsOptions.SectionName));
 builder.Services.AddScoped<IBankAccountService, BankAccountService>();
@@ -31,6 +34,25 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+else
+{
+    app.UseExceptionHandler("/error");
+    app.UseHsts();
+}
+
+app.Map("/error", (HttpContext context, ILogger<Program> logger) =>
+{
+    var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+    if (exception is not null)
+    {
+        logger.LogError(exception, "Unhandled exception while processing request.");
+    }
+
+    return Results.Problem(
+        title: "An unexpected error occurred.",
+        statusCode: StatusCodes.Status500InternalServerError,
+        type: "https://httpstatuses.com/500");
+}).AllowAnonymous();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();

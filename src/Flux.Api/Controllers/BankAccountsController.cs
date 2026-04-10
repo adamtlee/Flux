@@ -50,25 +50,16 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<BankAccount>>> GetAccounts()
     {
-        try
+        if (!TryGetCurrentUserId(out var userId))
         {
-            if (!TryGetCurrentUserId(out var userId))
-            {
-                return Unauthorized(new { message = "User identity is missing from token." });
-            }
-
-            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
-
-            _logger.LogInformation("Retrieving all bank accounts.");
-            var accounts = await _service.GetAllAccountsAsync(userId, isAdministrator);
-            return Ok(accounts);
+            return Unauthorized(new { message = "User identity is missing from token." });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while retrieving all bank accounts.");
-            return StatusCode(StatusCodes.Status500InternalServerError, 
-                new { message = "An error occurred while retrieving accounts.", error = ex.Message });
-        }
+
+        var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
+        _logger.LogInformation("Retrieving all bank accounts.");
+        var accounts = await _service.GetAllAccountsAsync(userId, isAdministrator);
+        return Ok(accounts);
     }
 
     /// <summary>
@@ -82,25 +73,16 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PortfolioRateAnalyticsResponse>> GetPortfolioAnalytics()
     {
-        try
+        if (!TryGetCurrentUserId(out var userId))
         {
-            if (!TryGetCurrentUserId(out var userId))
-            {
-                return Unauthorized(new { message = "User identity is missing from token." });
-            }
-
-            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
-
-            _logger.LogInformation("Retrieving portfolio analytics.");
-            var analytics = await _analyticsService.GetPortfolioAnalyticsAsync(userId, isAdministrator);
-            return Ok(analytics);
+            return Unauthorized(new { message = "User identity is missing from token." });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while retrieving portfolio analytics.");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An error occurred while retrieving portfolio analytics.", error = ex.Message });
-        }
+
+        var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
+        _logger.LogInformation("Retrieving portfolio analytics.");
+        var analytics = await _analyticsService.GetPortfolioAnalyticsAsync(userId, isAdministrator);
+        return Ok(analytics);
     }
 
     /// <summary>
@@ -119,38 +101,29 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AccountRateAnalyticsResponse>> GetAccountAnalytics(int id)
     {
-        try
+        if (!TryGetCurrentUserId(out var userId))
         {
-            if (!TryGetCurrentUserId(out var userId))
-            {
-                return Unauthorized(new { message = "User identity is missing from token." });
-            }
-
-            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
-
-            if (id <= 0)
-            {
-                _logger.LogWarning("Invalid account ID provided for analytics: {AccountId}", id);
-                return BadRequest(new { message = "Account ID must be a positive integer." });
-            }
-
-            _logger.LogInformation("Retrieving analytics for bank account with ID: {AccountId}", id);
-            var analytics = await _analyticsService.GetAccountAnalyticsByIdAsync(id, userId, isAdministrator);
-
-            if (analytics == null)
-            {
-                _logger.LogWarning("Bank account not found for analytics with ID: {AccountId}", id);
-                return NotFound(new { message = $"Bank account with ID {id} not found." });
-            }
-
-            return Ok(analytics);
+            return Unauthorized(new { message = "User identity is missing from token." });
         }
-        catch (Exception ex)
+
+        var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
+        if (id <= 0)
         {
-            _logger.LogError(ex, "An error occurred while retrieving analytics for bank account with ID: {AccountId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An error occurred while retrieving account analytics.", error = ex.Message });
+            _logger.LogWarning("Invalid account ID provided for analytics: {AccountId}", id);
+            return BadRequest(new { message = "Account ID must be a positive integer." });
         }
+
+        _logger.LogInformation("Retrieving analytics for bank account with ID: {AccountId}", id);
+        var analytics = await _analyticsService.GetAccountAnalyticsByIdAsync(id, userId, isAdministrator);
+
+        if (analytics == null)
+        {
+            _logger.LogWarning("Bank account not found for analytics with ID: {AccountId}", id);
+            return NotFound(new { message = $"Bank account with ID {id} not found." });
+        }
+
+        return Ok(analytics);
     }
 
     /// <summary>
@@ -169,38 +142,29 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BankAccount>> GetAccount(int id)
     {
-        try
+        if (!TryGetCurrentUserId(out var userId))
         {
-            if (!TryGetCurrentUserId(out var userId))
-            {
-                return Unauthorized(new { message = "User identity is missing from token." });
-            }
-
-            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
-
-            if (id <= 0)
-            {
-                _logger.LogWarning("Invalid account ID provided: {AccountId}", id);
-                return BadRequest(new { message = "Account ID must be a positive integer." });
-            }
-
-            _logger.LogInformation("Retrieving bank account with ID: {AccountId}", id);
-            var account = await _service.GetAccountByIdAsync(id, userId, isAdministrator);
-
-            if (account == null)
-            {
-                _logger.LogWarning("Bank account not found with ID: {AccountId}", id);
-                return NotFound(new { message = $"Bank account with ID {id} not found." });
-            }
-
-            return Ok(account);
+            return Unauthorized(new { message = "User identity is missing from token." });
         }
-        catch (Exception ex)
+
+        var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
+        if (id <= 0)
         {
-            _logger.LogError(ex, "An error occurred while retrieving bank account with ID: {AccountId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An error occurred while retrieving the account.", error = ex.Message });
+            _logger.LogWarning("Invalid account ID provided: {AccountId}", id);
+            return BadRequest(new { message = "Account ID must be a positive integer." });
         }
+
+        _logger.LogInformation("Retrieving bank account with ID: {AccountId}", id);
+        var account = await _service.GetAccountByIdAsync(id, userId, isAdministrator);
+
+        if (account == null)
+        {
+            _logger.LogWarning("Bank account not found with ID: {AccountId}", id);
+            return NotFound(new { message = $"Bank account with ID {id} not found." });
+        }
+
+        return Ok(account);
     }
 
     /// <summary>
@@ -260,12 +224,6 @@ public class BankAccountsController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error occurred during bank account creation.");
             return BadRequest(new { message = "Validation error.", error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while creating a new bank account.");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An error occurred while creating the account.", error = ex.Message });
         }
     }
 
@@ -335,12 +293,6 @@ public class BankAccountsController : ControllerBase
             _logger.LogWarning(ex, "Validation error occurred during bank account update.");
             return BadRequest(new { message = "Validation error.", error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while updating bank account with ID: {AccountId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An error occurred while updating the account.", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -359,39 +311,30 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteAccount(int id)
     {
-        try
+        if (!TryGetCurrentUserId(out var userId))
         {
-            if (!TryGetCurrentUserId(out var userId))
-            {
-                return Unauthorized(new { message = "User identity is missing from token." });
-            }
-
-            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
-
-            if (id <= 0)
-            {
-                _logger.LogWarning("Invalid account ID provided for deletion: {AccountId}", id);
-                return BadRequest(new { message = "Account ID must be a positive integer." });
-            }
-
-            _logger.LogInformation("Deleting bank account with ID: {AccountId}", id);
-            var success = await _service.DeleteAccountAsync(id, userId, isAdministrator);
-
-            if (!success)
-            {
-                _logger.LogWarning("Bank account not found for deletion with ID: {AccountId}", id);
-                return NotFound(new { message = $"Bank account with ID {id} not found." });
-            }
-
-            _logger.LogInformation("Successfully deleted bank account with ID: {AccountId}", id);
-            return NoContent();
+            return Unauthorized(new { message = "User identity is missing from token." });
         }
-        catch (Exception ex)
+
+        var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+
+        if (id <= 0)
         {
-            _logger.LogError(ex, "An error occurred while deleting bank account with ID: {AccountId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An error occurred while deleting the account.", error = ex.Message });
+            _logger.LogWarning("Invalid account ID provided for deletion: {AccountId}", id);
+            return BadRequest(new { message = "Account ID must be a positive integer." });
         }
+
+        _logger.LogInformation("Deleting bank account with ID: {AccountId}", id);
+        var success = await _service.DeleteAccountAsync(id, userId, isAdministrator);
+
+        if (!success)
+        {
+            _logger.LogWarning("Bank account not found for deletion with ID: {AccountId}", id);
+            return NotFound(new { message = $"Bank account with ID {id} not found." });
+        }
+
+        _logger.LogInformation("Successfully deleted bank account with ID: {AccountId}", id);
+        return NoContent();
     }
 
     /// <summary>
@@ -449,12 +392,6 @@ public class BankAccountsController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error occurred while importing bank accounts.");
             return BadRequest(new { message = "Validation error.", error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while importing bank accounts.");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An error occurred while importing accounts.", error = ex.Message });
         }
     }
 
@@ -543,12 +480,6 @@ public class BankAccountsController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error occurred while exporting bank accounts.");
             return BadRequest(new { message = "Validation error.", error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "An error occurred while exporting bank accounts.");
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                new { message = "An error occurred while exporting accounts.", error = ex.Message });
         }
     }
 
