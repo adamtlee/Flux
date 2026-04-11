@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Flux.Data.Models;
+using Flux.Api.Contracts;
 using Flux.Services;
 using Flux.Services.Models;
 
@@ -48,7 +49,7 @@ public class BankAccountsController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<BankAccount>>> GetAccounts()
+    public async Task<ActionResult<IEnumerable<BankAccountResponseDto>>> GetAccounts()
     {
         if (!TryGetCurrentUserId(out var userId))
         {
@@ -59,7 +60,7 @@ public class BankAccountsController : ControllerBase
 
         _logger.LogInformation("Retrieving all bank accounts.");
         var accounts = await _service.GetAllAccountsAsync(userId, isAdministrator);
-        return Ok(accounts);
+    return Ok(accounts.Select(MapToResponseDto));
     }
 
     /// <summary>
@@ -140,7 +141,7 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<BankAccount>> GetAccount(int id)
+    public async Task<ActionResult<BankAccountResponseDto>> GetAccount(int id)
     {
         if (!TryGetCurrentUserId(out var userId))
         {
@@ -164,7 +165,7 @@ public class BankAccountsController : ControllerBase
             return NotFound(new { message = $"Bank account with ID {id} not found." });
         }
 
-        return Ok(account);
+        return Ok(MapToResponseDto(account));
     }
 
     /// <summary>
@@ -179,7 +180,7 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<BankAccount>> PostAccount([FromBody] BankAccount account)
+    public async Task<ActionResult<BankAccountResponseDto>> PostAccount([FromBody] BankAccountCreateRequestDto request)
     {
         try
         {
@@ -196,7 +197,7 @@ public class BankAccountsController : ControllerBase
                 return Unauthorized(new { message = "Username is missing from token." });
             }
 
-            if (account == null)
+            if (request == null)
             {
                 _logger.LogWarning("Null bank account provided for creation.");
                 return BadRequest(new { message = "Bank account data is required." });
@@ -209,7 +210,8 @@ public class BankAccountsController : ControllerBase
             }
 
             _logger.LogInformation("Creating new bank account.");
-            var createdAccount = await _service.CreateAccountAsync(account, userId, username);
+            var accountToCreate = MapToEntity(request);
+            var createdAccount = await _service.CreateAccountAsync(accountToCreate, userId, username);
 
             if (createdAccount == null)
             {
@@ -218,7 +220,7 @@ public class BankAccountsController : ControllerBase
                     new { message = "Failed to create bank account." });
             }
 
-            return CreatedAtAction(nameof(GetAccount), new { id = createdAccount.Id }, createdAccount);
+            return CreatedAtAction(nameof(GetAccount), new { id = createdAccount.Id }, MapToResponseDto(createdAccount));
         }
         catch (ArgumentException ex)
         {
@@ -241,7 +243,7 @@ public class BankAccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> PutAccount(int id, [FromBody] BankAccount account)
+    public async Task<IActionResult> PutAccount(int id, [FromBody] BankAccountUpdateRequestDto request)
     {
         try
         {
@@ -258,16 +260,10 @@ public class BankAccountsController : ControllerBase
                 return BadRequest(new { message = "Account ID must be a positive integer." });
             }
 
-            if (account == null)
+            if (request == null)
             {
                 _logger.LogWarning("Null bank account data provided for update.");
                 return BadRequest(new { message = "Bank account data is required." });
-            }
-
-            if (id != account.Id)
-            {
-                _logger.LogWarning("Account ID mismatch during update. URL ID: {UrlId}, Body ID: {BodyId}", id, account.Id);
-                return BadRequest(new { message = "Account ID in URL does not match the account ID in the request body." });
             }
 
             if (!ModelState.IsValid)
@@ -277,7 +273,8 @@ public class BankAccountsController : ControllerBase
             }
 
             _logger.LogInformation("Updating bank account with ID: {AccountId}", id);
-            var success = await _service.UpdateAccountAsync(id, account, userId, isAdministrator);
+            var accountToUpdate = MapToEntity(id, request);
+            var success = await _service.UpdateAccountAsync(id, accountToUpdate, userId, isAdministrator);
 
             if (!success)
             {
@@ -493,6 +490,48 @@ public class BankAccountsController : ControllerBase
             message = "The request could not be processed due to invalid input.",
             correlationId
         });
+    }
+
+    private static BankAccount MapToEntity(BankAccountCreateRequestDto request)
+    {
+        return new BankAccount
+        {
+            AccountName = request.AccountName,
+            Balance = request.Balance,
+            Type = request.Type,
+            CreditCardAprPercent = request.CreditCardAprPercent,
+            SavingsApyPercent = request.SavingsApyPercent
+        };
+    }
+
+    private static BankAccount MapToEntity(int id, BankAccountUpdateRequestDto request)
+    {
+        return new BankAccount
+        {
+            Id = id,
+            AccountName = request.AccountName,
+            Balance = request.Balance,
+            Type = request.Type,
+            CreditCardAprPercent = request.CreditCardAprPercent,
+            SavingsApyPercent = request.SavingsApyPercent
+        };
+    }
+
+    private static BankAccountResponseDto MapToResponseDto(BankAccount account)
+    {
+        return new BankAccountResponseDto
+        {
+            Id = account.Id,
+            OwnerUserId = account.OwnerUserId,
+            AccountName = account.AccountName,
+            Owner = account.Owner,
+            Balance = account.Balance,
+            Type = account.Type,
+            CreditCardAprPercent = account.CreditCardAprPercent,
+            SavingsApyPercent = account.SavingsApyPercent,
+            CreatedAt = account.CreatedAt,
+            UpdatedAt = account.UpdatedAt
+        };
     }
 
     private bool TryGetCurrentUserId(out Guid userId)
