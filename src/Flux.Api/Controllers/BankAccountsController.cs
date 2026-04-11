@@ -222,8 +222,7 @@ public class BankAccountsController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Validation error occurred during bank account creation.");
-            return BadRequest(new { message = "Validation error.", error = ex.Message });
+            return CreateValidationErrorResponse(ex, "bank account creation");
         }
     }
 
@@ -290,8 +289,7 @@ public class BankAccountsController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Validation error occurred during bank account update.");
-            return BadRequest(new { message = "Validation error.", error = ex.Message });
+            return CreateValidationErrorResponse(ex, "bank account update");
         }
     }
 
@@ -390,8 +388,7 @@ public class BankAccountsController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Validation error occurred while importing bank accounts.");
-            return BadRequest(new { message = "Validation error.", error = ex.Message });
+            return CreateValidationErrorResponse(ex, "bank account import");
         }
     }
 
@@ -478,9 +475,24 @@ public class BankAccountsController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Validation error occurred while exporting bank accounts.");
-            return BadRequest(new { message = "Validation error.", error = ex.Message });
+            return CreateValidationErrorResponse(ex, "bank account export");
         }
+    }
+
+    private BadRequestObjectResult CreateValidationErrorResponse(Exception exception, string operation)
+    {
+        var correlationId = HttpContext.TraceIdentifier;
+        _logger.LogWarning(
+            exception,
+            "Validation error during {Operation}. CorrelationId: {CorrelationId}",
+            operation,
+            correlationId);
+
+        return BadRequest(new
+        {
+            message = "The request could not be processed due to invalid input.",
+            correlationId
+        });
     }
 
     private bool TryGetCurrentUserId(out Guid userId)

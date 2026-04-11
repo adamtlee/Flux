@@ -14,15 +14,18 @@ public class AuthController : ControllerBase
     private readonly IAuthService _authService;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         IAuthService authService,
         IHttpClientFactory httpClientFactory,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<AuthController> logger)
     {
         _authService = authService;
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
+        _logger = logger;
     }
 
     [AllowAnonymous]
@@ -44,11 +47,11 @@ public class AuthController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(CreateSafeErrorPayload(ex, "registration request validation", "The registration request is invalid."));
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(new { message = ex.Message });
+            return Conflict(CreateSafeErrorPayload(ex, "registration conflict", "Unable to complete registration at this time."));
         }
     }
 
@@ -71,12 +74,28 @@ public class AuthController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(CreateSafeErrorPayload(ex, "login request validation", "The login request is invalid."));
         }
         catch (UnauthorizedAccessException ex)
         {
-            return Unauthorized(new { message = ex.Message });
+            return Unauthorized(CreateSafeErrorPayload(ex, "login authorization", "The provided credentials are invalid."));
         }
+    }
+
+    private object CreateSafeErrorPayload(Exception exception, string operation, string clientMessage)
+    {
+        var correlationId = HttpContext.TraceIdentifier;
+        _logger.LogWarning(
+            exception,
+            "Auth operation failed during {Operation}. CorrelationId: {CorrelationId}",
+            operation,
+            correlationId);
+
+        return new
+        {
+            message = clientMessage,
+            correlationId
+        };
     }
 
     private bool UseRemoteAuthService()
