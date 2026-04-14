@@ -5,6 +5,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { LoadingComponent } from '../../components/loading/loading.component';
 import { BankAccountImportResult, BankAccountService, CreateBankAccountRequest } from '../../services/bank-account.service';
+import { ReceiptService } from '../../services/receipt.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   BankAccount,
@@ -13,8 +14,9 @@ import {
   PortfolioRateAnalyticsResponse,
   SavingsRateAnalytics
 } from '../../models/bank-account';
+import { CreateReceiptRequest, Receipt, ReceiptItem } from '../../models/receipt';
 
-type AccountsTab = 'accounts' | 'insights';
+type AccountsTab = 'accounts' | 'insights' | 'receipts';
 
 interface AccountTypeInsight {
   type: AccountType;
@@ -34,6 +36,7 @@ interface AccountTypeInsight {
 })
 export class BankAccountsComponent implements OnInit, OnDestroy {
   accounts: BankAccount[] = [];
+  receipts: Receipt[] = [];
   portfolioAnalytics: PortfolioRateAnalyticsResponse | null = null;
   loading = true;
   error: string | null = null;
@@ -54,7 +57,32 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
   importInProgress = false;
   exportInProgress = false;
   templateDownloadInProgress = false;
+  receiptSaving = false;
+  receiptError: string | null = null;
+  receiptSuccess: string | null = null;
   targetUserId = '';
+
+  newReceipt: {
+    accountId: number | null;
+    merchantName: string;
+    purchasedAtUtc: string;
+    currencyCode: string;
+    notes: string;
+    items: ReceiptItem[];
+  } = {
+      accountId: null,
+      merchantName: '',
+      purchasedAtUtc: this.toDateTimeLocal(new Date()),
+      currencyCode: 'USD',
+      notes: '',
+      items: [
+        {
+          productName: '',
+          quantity: 1,
+          unitPrice: 0
+        }
+      ]
+    };
 
   newAccount: Partial<BankAccount> = {
     accountName: '',
@@ -76,6 +104,7 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
 
   constructor(
     private bankAccountService: BankAccountService,
+    private receiptService: ReceiptService,
     private router: Router,
     private route: ActivatedRoute
   ) { }
@@ -101,10 +130,12 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
 
     forkJoin({
       accounts: this.bankAccountService.getAllAccounts(),
-      analytics: this.bankAccountService.getPortfolioRateAnalytics()
+      analytics: this.bankAccountService.getPortfolioRateAnalytics(),
+      receipts: this.receiptService.getReceipts()
     }).subscribe({
-      next: ({ accounts, analytics }) => {
+      next: ({ accounts, analytics, receipts }) => {
         this.accounts = accounts;
+        this.receipts = receipts;
         this.portfolioAnalytics = analytics;
         this.calculateTotalBalance();
         this.refreshInsights();
@@ -162,6 +193,108 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
   setActiveTab(tab: AccountsTab): void {
     this.activeTab = tab;
     this.scrollToRequestedSection();
+  }
+
+  addReceiptItem(): void {
+    this.newReceipt.items.push({
+      productName: '',
+      quantity: 1,
+      unitPrice: 0
+    });
+  }
+
+  removeReceiptItem(index: number): void {
+    if (this.newReceipt.items.length <= 1) {
+      return;
+    }
+
+    this.newReceipt.items.splice(index, 1);
+  }
+
+  createReceipt(): void {
+    this.receiptError = null;
+    this.receiptSuccess = null;
+
+    if (!this.newReceipt.merchantName.trim()) {
+      this.receiptError = 'Merchant name is required.';
+      return;
+    }
+
+    if (!this.newReceipt.purchasedAtUtc) {
+      this.receiptError = 'Purchase date is required.';
+      return;
+    }
+
+    if (this.newReceipt.items.length === 0) {
+      this.receiptError = 'Add at least one purchased product item.';
+      return;
+    }
+
+    const invalidItem = this.newReceipt.items.find((item) =>
+      !item.productName?.trim() || Number(item.quantity) <= 0 || Number(item.unitPrice) < 0
+    );
+    if (invalidItem) {
+      this.receiptError = 'Each item requires a name, quantity greater than zero, and non-negative unit price.';
+      return;
+    }
+
+    const payload: CreateReceiptRequest = {
+      accountId: this.newReceipt.accountId,
+      merchantName: this.newReceipt.merchantName.trim(),
+      purchasedAtUtc: this.toUtcIso(this.newReceipt.purchasedAtUtc),
+      totalAmount: this.getReceiptTotal(),
+      currencyCode: (this.newReceipt.currencyCode || 'USD').trim().toUpperCase(),
+      notes: this.newReceipt.notes?.trim() || null,
+      items: this.newReceipt.items.map((item) => ({
+        productName: item.productName.trim(),
+        quantity: Number(item.quantity),
+        unitPrice: Number(item.unitPrice)
+      }))
+    };
+
+    this.receiptSaving = true;
+    this.receiptService.createReceipt(payload).subscribe({
+      next: (receipt) => {
+        this.receipts = [receipt, ...this.receipts];
+        this.receiptSaving = false;
+        this.receiptSuccess = 'Receipt saved successfully.';
+        this.resetReceiptForm();
+      },
+      error: (err) => {
+        console.error('Error creating receipt:', err);
+        this.receiptError = err?.error?.error ?? err?.error?.message ?? 'Failed to save receipt. Please try again.';
+        this.receiptSaving = false;
+      }
+    });
+  }
+
+  deleteReceipt(id: number): void {
+    const shouldDelete = confirm('Delete this receipt? This action cannot be undone.');
+    if (!shouldDelete) {
+      return;
+    }
+
+    this.receiptError = null;
+    this.receiptSuccess = null;
+
+    this.receiptService.deleteReceipt(id).subscribe({
+      next: () => {
+        this.receipts = this.receipts.filter((receipt) => receipt.id !== id);
+        this.receiptSuccess = 'Receipt deleted successfully.';
+      },
+      error: (err) => {
+        console.error('Error deleting receipt:', err);
+        this.receiptError = err?.error?.error ?? err?.error?.message ?? 'Failed to delete receipt. Please try again.';
+      }
+    });
+  }
+
+  getReceiptTotal(): number {
+    return this.newReceipt.items.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.unitPrice)), 0);
+  }
+
+  getReceiptLineTotal(item: ReceiptItem): number {
+    return Number(item.quantity) * Number(item.unitPrice);
   }
 
   toggleCreateForm(): void {
@@ -405,7 +538,7 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((params) => {
         const tab = params.get('tab');
-        if (tab === 'accounts' || tab === 'insights') {
+        if (tab === 'accounts' || tab === 'insights' || tab === 'receipts') {
           this.activeTab = tab;
         }
 
@@ -446,8 +579,37 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
         return 'exports-templates-section';
       case 'account-details':
         return 'account-details-section';
+      case 'receipts':
+        return 'receipts-section';
       default:
         return null;
     }
+  }
+
+  private resetReceiptForm(): void {
+    this.newReceipt = {
+      accountId: null,
+      merchantName: '',
+      purchasedAtUtc: this.toDateTimeLocal(new Date()),
+      currencyCode: 'USD',
+      notes: '',
+      items: [
+        {
+          productName: '',
+          quantity: 1,
+          unitPrice: 0
+        }
+      ]
+    };
+  }
+
+  private toDateTimeLocal(value: Date): string {
+    const offset = value.getTimezoneOffset();
+    const localDate = new Date(value.getTime() - offset * 60000);
+    return localDate.toISOString().slice(0, 16);
+  }
+
+  private toUtcIso(dateTimeLocalValue: string): string {
+    return new Date(dateTimeLocalValue).toISOString();
   }
 }

@@ -271,13 +271,6 @@
     color: #1a1a1a;
     margin-bottom: 0.25rem;
   }
-
-  .account-number {
-    color: #999;
-    font-size: 0.9rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-  }
 }
 
 .account-type {
@@ -546,6 +539,38 @@
   }
 }
 
+.receipt-item-row {
+  display: grid;
+  grid-template-columns: 1.5fr 0.9fr 0.9fr 0.9fr auto;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.receipt-total {
+  margin: 0;
+}
+
+.receipt-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  padding: 1rem;
+}
+
+.receipt-card-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.receipt-items-preview {
+  display: grid;
+}
+
+.receipt-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 @media (max-width: 768px) {
   .analytics-card-header,
   .account-header {
@@ -565,5 +590,10 @@
     flex-direction: column;
     align-items: stretch;
   }
+
+  .receipt-item-row {
+    grid-template-columns: 1fr;
+  }
+
 }
 

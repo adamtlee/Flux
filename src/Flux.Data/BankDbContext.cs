@@ -9,6 +9,8 @@ public class BankDbContext : DbContext
 
     public DbSet<BankAccount> Accounts { get; set; }
     public DbSet<UserAccount> UserAccounts { get; set; }
+    public DbSet<Receipt> Receipts { get; set; }
+    public DbSet<ReceiptItem> ReceiptItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,5 +38,56 @@ public class BankDbContext : DbContext
 
         modelBuilder.Entity<BankAccount>()
             .Property(account => account.OwnerUserId);
+
+        modelBuilder.Entity<Receipt>()
+            .Property(receipt => receipt.OwnerUsername)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<Receipt>()
+            .Property(receipt => receipt.MerchantName)
+            .HasMaxLength(150);
+
+        modelBuilder.Entity<Receipt>()
+            .Property(receipt => receipt.CurrencyCode)
+            .HasMaxLength(3);
+
+        modelBuilder.Entity<Receipt>()
+            .Property(receipt => receipt.Notes)
+            .HasMaxLength(500);
+
+        modelBuilder.Entity<Receipt>()
+            .Property(receipt => receipt.TotalAmount)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<Receipt>()
+            .HasIndex(receipt => new { receipt.OwnerUserId, receipt.PurchasedAtUtc });
+
+        modelBuilder.Entity<Receipt>()
+            .HasOne(receipt => receipt.Account)
+            .WithMany(account => account.Receipts)
+            .HasForeignKey(receipt => receipt.AccountId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<ReceiptItem>()
+            .Property(item => item.ProductName)
+            .HasMaxLength(150);
+
+        modelBuilder.Entity<ReceiptItem>()
+            .Property(item => item.Quantity)
+            .HasPrecision(18, 3);
+
+        modelBuilder.Entity<ReceiptItem>()
+            .Property(item => item.UnitPrice)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ReceiptItem>()
+            .Property(item => item.LineTotal)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ReceiptItem>()
+            .HasOne(item => item.Receipt)
+            .WithMany(receipt => receipt.Items)
+            .HasForeignKey(item => item.ReceiptId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

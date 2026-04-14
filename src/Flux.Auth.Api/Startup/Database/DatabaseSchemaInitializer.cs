@@ -43,6 +43,47 @@ public sealed class DatabaseSchemaInitializer(BankDbContext context) : IDatabase
             CREATE UNIQUE INDEX IF NOT EXISTS IX_UserAccounts_Username ON UserAccounts (Username);
         ", cancellationToken);
 
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE TABLE IF NOT EXISTS Receipts (
+                Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                OwnerUserId TEXT NOT NULL,
+                OwnerUsername TEXT NOT NULL,
+                AccountId INTEGER NULL,
+                MerchantName TEXT NOT NULL,
+                PurchasedAtUtc TEXT NOT NULL,
+                TotalAmount REAL NOT NULL,
+                CurrencyCode TEXT NOT NULL,
+                Notes TEXT NULL,
+                CreatedAt TEXT NOT NULL,
+                UpdatedAt TEXT NOT NULL,
+                CONSTRAINT FK_Receipts_Accounts_AccountId FOREIGN KEY (AccountId) REFERENCES Accounts (Id) ON DELETE SET NULL
+            );
+        ", cancellationToken);
+
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE TABLE IF NOT EXISTS ReceiptItems (
+                Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                ReceiptId INTEGER NOT NULL,
+                ProductName TEXT NOT NULL,
+                Quantity REAL NOT NULL,
+                UnitPrice REAL NOT NULL,
+                LineTotal REAL NOT NULL,
+                CONSTRAINT FK_ReceiptItems_Receipts_ReceiptId FOREIGN KEY (ReceiptId) REFERENCES Receipts (Id) ON DELETE CASCADE
+            );
+        ", cancellationToken);
+
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE INDEX IF NOT EXISTS IX_Receipts_OwnerUserId_PurchasedAtUtc ON Receipts (OwnerUserId, PurchasedAtUtc);
+        ", cancellationToken);
+
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE INDEX IF NOT EXISTS IX_Receipts_AccountId ON Receipts (AccountId);
+        ", cancellationToken);
+
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE INDEX IF NOT EXISTS IX_ReceiptItems_ReceiptId ON ReceiptItems (ReceiptId);
+        ", cancellationToken);
+
         EnsureColumnExists(context, "UserAccounts", "Role", "TEXT NOT NULL DEFAULT 'FreeMember'");
         EnsureColumnExists(context, "Accounts", "OwnerUserId", "TEXT NULL");
         EnsureColumnExists(context, "Accounts", "AccountName", "TEXT NULL");

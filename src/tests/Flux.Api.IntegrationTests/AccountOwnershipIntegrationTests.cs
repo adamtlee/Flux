@@ -300,4 +300,77 @@ public sealed class AccountOwnershipIntegrationTests : IClassFixture<OwnershipTe
         Assert.NotNull(afterAccounts);
         Assert.Equal(beforeAccounts!.Count, afterAccounts!.Count);
     }
+
+    [Fact]
+    public async Task CreateReceipt_ThenGetAsOwner_Returns200()
+    {
+        var purchaseDate = DateTime.UtcNow.AddMinutes(-5);
+        var createResponse = await _fixture.MemberClient.PostAsJsonAsync("/api/receipts", new
+        {
+            merchantName = "Book Store",
+            purchasedAtUtc = purchaseDate,
+            totalAmount = 40m,
+            currencyCode = "USD",
+            notes = "Quarterly reading",
+            items = new[]
+            {
+                new { productName = "Book", quantity = 2m, unitPrice = 20m }
+            }
+        });
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var created = await createResponse.Content.ReadFromJsonAsync<ReceiptDto>();
+        Assert.NotNull(created);
+
+        var getResponse = await _fixture.MemberClient.GetAsync($"/api/receipts/{created!.Id}");
+
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetReceipt_AsNonOwner_Returns404()
+    {
+        var createResponse = await _fixture.MemberClient.PostAsJsonAsync("/api/receipts", new
+        {
+            merchantName = "Hardware Store",
+            purchasedAtUtc = DateTime.UtcNow,
+            totalAmount = 30m,
+            currencyCode = "USD",
+            notes = "Supplies",
+            items = new[]
+            {
+                new { productName = "Screws", quantity = 3m, unitPrice = 10m }
+            }
+        });
+        createResponse.EnsureSuccessStatusCode();
+
+        var created = await createResponse.Content.ReadFromJsonAsync<ReceiptDto>();
+        Assert.NotNull(created);
+
+        var response = await _fixture.AdminClient.GetAsync($"/api/receipts/{created!.Id}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        // Member-owned receipt should not be visible to another non-admin owner.
+        using var thirdClient = _fixture.Factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("https://localhost"),
+            AllowAutoRedirect = false
+        });
+        var token = await RegisterClientAsync(thirdClient, "receipt-third-user", "Password123!");
+        thirdClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var nonOwnerResponse = await thirdClient.GetAsync($"/api/receipts/{created.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, nonOwnerResponse.StatusCode);
+    }
+
+    private static async Task<string> RegisterClientAsync(HttpClient client, string username, string password)
+    {
+        var response = await client.PostAsJsonAsync("/api/auth/register", new { username, password });
+        response.EnsureSuccessStatusCode();
+        var dto = await response.Content.ReadFromJsonAsync<OwnershipTestFixture.AuthDto>();
+        return dto!.AccessToken;
+    }
+
+    internal sealed record ReceiptDto(int Id, string MerchantName, decimal TotalAmount);
 }

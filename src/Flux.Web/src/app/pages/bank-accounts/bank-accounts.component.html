@@ -33,6 +33,15 @@
         (click)="setActiveTab('insights')">
         Chart & Summary
       </button>
+      <button
+        type="button"
+        class="tab-btn"
+        role="tab"
+        [class.active]="activeTab === 'receipts'"
+        [attr.aria-selected]="activeTab === 'receipts'"
+        (click)="setActiveTab('receipts')">
+        Receipts
+      </button>
     </div>
 
     <div *ngIf="activeTab === 'accounts'">
@@ -404,6 +413,160 @@
         <div class="no-accounts">
           <p>No data available for charting yet</p>
           <p class="text-secondary">Create an account to see summary insights</p>
+        </div>
+      </ng-template>
+    </div>
+
+    <div *ngIf="activeTab === 'receipts'" class="receipts-tab" id="receipts-section">
+      <div class="create-form-card receipt-form-card">
+        <h3>Purchased Products Receipt</h3>
+        <form (ngSubmit)="createReceipt()" #receiptForm="ngForm">
+          <div class="form-group">
+            <label for="merchantName">Merchant</label>
+            <input
+              type="text"
+              id="merchantName"
+              name="merchantName"
+              [(ngModel)]="newReceipt.merchantName"
+              required
+              maxlength="150"
+              class="form-control"
+              placeholder="Store or merchant name">
+          </div>
+
+          <div class="rate-fields">
+            <div class="form-group">
+              <label for="purchasedAtUtc">Purchased At</label>
+              <input
+                type="datetime-local"
+                id="purchasedAtUtc"
+                name="purchasedAtUtc"
+                [(ngModel)]="newReceipt.purchasedAtUtc"
+                required
+                class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label for="receiptAccountId">Linked Account (optional)</label>
+              <select
+                id="receiptAccountId"
+                name="receiptAccountId"
+                [(ngModel)]="newReceipt.accountId"
+                class="form-control">
+                <option [ngValue]="null">No linked account</option>
+                <option *ngFor="let account of accounts" [ngValue]="account.id">{{ getDisplayAccountName(account) }}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="currencyCode">Currency</label>
+              <input
+                type="text"
+                id="currencyCode"
+                name="currencyCode"
+                [(ngModel)]="newReceipt.currencyCode"
+                maxlength="3"
+                class="form-control"
+                placeholder="USD">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="receiptNotes">Notes</label>
+            <textarea
+              id="receiptNotes"
+              name="receiptNotes"
+              [(ngModel)]="newReceipt.notes"
+              maxlength="500"
+              class="form-control"
+              placeholder="Optional note about this purchase"></textarea>
+          </div>
+
+          <h4>Purchased Items</h4>
+          <div class="receipt-item-list">
+            <div class="receipt-item-row" *ngFor="let item of newReceipt.items; let index = index">
+              <input
+                type="text"
+                [name]="'productName' + index"
+                [(ngModel)]="item.productName"
+                required
+                maxlength="150"
+                class="form-control"
+                placeholder="Product name">
+
+              <input
+                type="number"
+                [name]="'quantity' + index"
+                [(ngModel)]="item.quantity"
+                min="0.001"
+                step="0.001"
+                required
+                class="form-control"
+                placeholder="Qty">
+
+              <input
+                type="number"
+                [name]="'unitPrice' + index"
+                [(ngModel)]="item.unitPrice"
+                min="0"
+                step="0.01"
+                required
+                class="form-control"
+                placeholder="Unit price">
+
+              <div class="receipt-line-total">{{ formatCurrency(getReceiptLineTotal(item)) }}</div>
+
+              <button type="button" class="btn btn-secondary" (click)="removeReceiptItem(index)">Remove</button>
+            </div>
+          </div>
+
+          <div class="receipt-actions-row">
+            <button type="button" class="btn btn-primary" (click)="addReceiptItem()">Add Item</button>
+            <p class="receipt-total">Total: {{ formatCurrency(getReceiptTotal()) }}</p>
+          </div>
+
+          <p class="import-status" *ngIf="receiptSuccess">{{ receiptSuccess }}</p>
+          <p class="import-error" *ngIf="receiptError">{{ receiptError }}</p>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-success" [disabled]="receiptSaving || !receiptForm.form.valid">
+              {{ receiptSaving ? 'Saving...' : 'Save Receipt' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div *ngIf="receipts.length > 0; else noReceipts" class="receipt-list">
+        <article class="receipt-card" *ngFor="let receipt of receipts">
+          <div class="receipt-card-header">
+            <div>
+              <h4>{{ receipt.merchantName }}</h4>
+              <p>Purchased {{ receipt.purchasedAtUtc | date: 'medium' }} by {{ receipt.ownerUsername }}</p>
+            </div>
+            <p class="receipt-amount">{{ formatCurrency(receipt.totalAmount) }} {{ receipt.currencyCode }}</p>
+          </div>
+
+          <p class="receipt-notes" *ngIf="receipt.notes">{{ receipt.notes }}</p>
+
+          <div class="receipt-items-preview">
+            <div class="receipt-preview-row" *ngFor="let item of receipt.items">
+              <span>{{ item.productName }}</span>
+              <span>{{ item.quantity }} × {{ formatCurrency(item.unitPrice) }}</span>
+              <strong>{{ formatCurrency(item.lineTotal ?? 0) }}</strong>
+            </div>
+          </div>
+
+          <div class="receipt-footer">
+            <span>Receipt #{{ receipt.id }}</span>
+            <button type="button" class="btn btn-secondary" (click)="deleteReceipt(receipt.id)">Delete</button>
+          </div>
+        </article>
+      </div>
+
+      <ng-template #noReceipts>
+        <div class="no-accounts">
+          <p>No receipts yet</p>
+          <p class="text-secondary">Add a purchased product receipt to start tracking your spend records.</p>
         </div>
       </ng-template>
     </div>
