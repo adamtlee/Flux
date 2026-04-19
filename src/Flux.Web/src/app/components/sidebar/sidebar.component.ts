@@ -56,6 +56,12 @@ export class SidebarComponent {
       queryParams: { tab: 'insights', section: 'chart-summary' }
     },
     {
+      id: 'receipts',
+      label: 'Receipts',
+      route: '/accounts',
+      queryParams: { tab: 'receipts', section: 'receipts' }
+    },
+    {
       id: 'imports',
       label: 'Imports',
       route: '/accounts',
