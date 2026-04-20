@@ -156,6 +156,7 @@ public sealed class AnalyticsIntegrationTests : IClassFixture<OwnershipTestFixtu
     {
         Checking = 0,
         Savings = 1,
-        CreditCard = 2
+        CreditCard = 2,
+        Retirement = 3
     }
 }

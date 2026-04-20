@@ -95,7 +95,8 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
   accountTypes = [
     { value: AccountType.Checking, label: 'Checking' },
     { value: AccountType.Savings, label: 'Savings' },
-    { value: AccountType.CreditCard, label: 'Credit Card' }
+    { value: AccountType.CreditCard, label: 'Credit Card' },
+    { value: AccountType.Retirement, label: 'Retirement (401k / Roth IRA)' }
   ];
 
   private platformId = inject(PLATFORM_ID);
@@ -427,7 +428,8 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
     const colors: { [key: number]: string } = {
       [AccountType.Checking]: '#2196f3',
       [AccountType.Savings]: '#4caf50',
-      [AccountType.CreditCard]: '#f44336'
+      [AccountType.CreditCard]: '#f44336',
+      [AccountType.Retirement]: '#ff9800'
     };
     return colors[type] || '#9c27b0';
   }

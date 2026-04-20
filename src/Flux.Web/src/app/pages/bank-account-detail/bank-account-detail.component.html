@@ -64,7 +64,7 @@
       <div class="form-group">
         <label>Type</label>
         <select class="form-control" formControlName="type">
-          <option *ngFor="let t of [{value:0,label:'Checking'},{value:1,label:'Savings'},{value:2,label:'Credit Card'}]" [ngValue]="t.value">{{ t.label }}</option>
+          <option *ngFor="let t of accountTypeOptions" [ngValue]="t.value">{{ t.label }}</option>
         </select>
       </div>
 

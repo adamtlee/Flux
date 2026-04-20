@@ -491,7 +491,7 @@ public class BankAccountService : IBankAccountService
         var typeValue = (rawRow["Type"] ?? string.Empty).Trim();
         if (!TryParseAccountType(typeValue, out var accountType))
         {
-            throw new ArgumentException($"Row {rowNumber}: Type must be one of Checking, Savings, CreditCard, 0, 1, or 2.");
+            throw new ArgumentException($"Row {rowNumber}: Type must be one of Checking, Savings, CreditCard, Retirement, 0, 1, 2, or 3.");
         }
 
         var creditCardAprPercent = ParseNullableDecimal(rawRow["CreditCardAprPercent"], rowNumber, "CreditCardAprPercent");

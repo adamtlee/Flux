@@ -13,7 +13,8 @@ export interface BankAccount {
 export enum AccountType {
   Checking = 0,
   Savings = 1,
-  CreditCard = 2
+  CreditCard = 2,
+  Retirement = 3
 }
 
 export interface CompoundingProjection {

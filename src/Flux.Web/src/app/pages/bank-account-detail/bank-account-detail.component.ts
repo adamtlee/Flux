@@ -18,6 +18,12 @@ export class BankAccountDetailComponent implements OnInit {
   error: string | null = null;
   editMode = false;
   form: FormGroup | null = null;
+  accountTypeOptions = [
+    { value: AccountType.Checking, label: 'Checking' },
+    { value: AccountType.Savings, label: 'Savings' },
+    { value: AccountType.CreditCard, label: 'Credit Card' },
+    { value: AccountType.Retirement, label: 'Retirement (401k / Roth IRA)' }
+  ];
 
   constructor(
     private route: ActivatedRoute,
@@ -139,6 +145,8 @@ export class BankAccountDetailComponent implements OnInit {
         return 'Savings';
       case AccountType.CreditCard:
         return 'Credit Card';
+      case AccountType.Retirement:
+        return 'Retirement (401k / Roth IRA)';
       default:
         return 'Unknown';
     }

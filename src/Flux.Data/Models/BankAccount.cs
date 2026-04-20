@@ -29,7 +29,8 @@ public enum AccountType
 {
     Checking,
     Savings,
-    CreditCard
+    CreditCard,
+    Retirement
 }
 
 // What other properties would you add here?
