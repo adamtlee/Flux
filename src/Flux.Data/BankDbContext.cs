@@ -11,6 +11,7 @@ public class BankDbContext : DbContext
     public DbSet<UserAccount> UserAccounts { get; set; }
     public DbSet<Receipt> Receipts { get; set; }
     public DbSet<ReceiptItem> ReceiptItems { get; set; }
+    public DbSet<Subscription> Subscriptions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -89,5 +90,42 @@ public class BankDbContext : DbContext
             .WithMany(receipt => receipt.Items)
             .HasForeignKey(item => item.ReceiptId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Subscription>()
+            .Property(subscription => subscription.OwnerUsername)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<Subscription>()
+            .Property(subscription => subscription.ServiceName)
+            .HasMaxLength(150);
+
+        modelBuilder.Entity<Subscription>()
+            .Property(subscription => subscription.ProviderName)
+            .HasMaxLength(150);
+
+        modelBuilder.Entity<Subscription>()
+            .Property(subscription => subscription.TagsCsv)
+            .HasMaxLength(500);
+
+        modelBuilder.Entity<Subscription>()
+            .Property(subscription => subscription.CurrencyCode)
+            .HasMaxLength(3);
+
+        modelBuilder.Entity<Subscription>()
+            .Property(subscription => subscription.Notes)
+            .HasMaxLength(500);
+
+        modelBuilder.Entity<Subscription>()
+            .Property(subscription => subscription.Amount)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<Subscription>()
+            .HasIndex(subscription => new { subscription.OwnerUserId, subscription.NextDueDateUtc });
+
+        modelBuilder.Entity<Subscription>()
+            .HasIndex(subscription => new { subscription.OwnerUserId, subscription.Category });
+
+        modelBuilder.Entity<Subscription>()
+            .HasIndex(subscription => new { subscription.OwnerUserId, subscription.Status });
     }
 }

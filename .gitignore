@@ -11,5 +11,10 @@
 # Logs
 *.log
 
+# Local SQLite data files
+src/**/data/*.db
+src/**/data/*.db-shm
+src/**/data/*.db-wal
+
 # Published release artifacts
 src/publish/

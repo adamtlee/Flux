@@ -1,0 +1,398 @@
+.subscriptions-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.accounts-header {
+  margin-bottom: 3rem;
+  text-align: center;
+
+  h1 {
+    font-size: 2.5rem;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: #666;
+  }
+}
+
+.error-message {
+  background: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  color: #c62828;
+
+  p {
+    margin-bottom: 1rem;
+  }
+}
+
+.success-message {
+  margin-bottom: 1.2rem;
+  background: #ecfdf5;
+  border: 1px solid #9fe7c5;
+  border-radius: 0.5rem;
+  padding: 0.9rem 1rem;
+  color: #0b6b4b;
+  font-weight: 600;
+}
+
+.total-balance-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+
+  .balance-content h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .balance-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .balance-accounts {
+    opacity: 0.85;
+    font-size: 0.95rem;
+  }
+}
+
+.create-account-section {
+  text-align: center;
+  margin-bottom: 2rem;
+
+  .btn {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+  }
+}
+
+.create-form-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  h3 {
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+    font-size: 1.5rem;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+  }
+}
+
+.form-grid,
+.edit-form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  margin-top: 0.45rem;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.4rem 0 0;
+  font-weight: 600;
+
+  input {
+    width: auto;
+    margin: 0;
+  }
+}
+
+.accounts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.account-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-color: #667eea;
+  }
+
+  h3 {
+    margin: 0;
+    color: #1a1a1a;
+  }
+}
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.account-type-label {
+  margin-top: 0.35rem;
+  color: #7a7a7a;
+  font-size: 0.95rem;
+}
+
+.status {
+  align-self: start;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #075985;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status.cancelled {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.status.paused {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.account-balance {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 0.5rem;
+
+  .balance-label {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .balance-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+}
+
+.account-footer .account-meta {
+  display: flex;
+  gap: 1.4rem;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+
+  .meta-label {
+    font-size: 0.8rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .meta-value {
+    color: #1a1a1a;
+    font-size: 0.95rem;
+  }
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1rem;
+
+  span {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.78rem;
+    color: #4b5563;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.no-accounts {
+  text-align: center;
+  padding: 3rem;
+  background: #f9f9f9;
+  border-radius: 1rem;
+  border: 2px dashed #e0e0e0;
+
+  p {
+    margin: 0.5rem 0;
+    color: #666;
+  }
+}
+
+.text-secondary,
+.muted {
+  color: #6b7280;
+}
+
+.accent-card {
+  background: linear-gradient(145deg, #f5f9ff 0%, #eef7f2 100%);
+}
+
+.bar-fill {
+  background: linear-gradient(90deg, #667eea 0%, #4c6ef5 100%);
+}
+
+.trend-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.trend-card {
+  border: 1px solid #e4edf6;
+  border-radius: 0.9rem;
+  padding: 0.95rem;
+  background: #fbfdff;
+}
+
+.trend-label {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5f7388;
+}
+
+.trend-value {
+  margin: 0.35rem 0 0;
+  color: #17324a;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.receipt-items-preview {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.receipt-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.85rem;
+  padding: 1rem;
+}
+
+.receipt-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+
+  h4 {
+    margin: 0;
+    color: #17324a;
+  }
+}
+
+.analytics-metrics {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+
+  span {
+    display: block;
+    color: #6f8093;
+    font-size: 0.82rem;
+    margin-bottom: 0.2rem;
+  }
+
+  strong {
+    color: #17324a;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .account-header,
+  .receipt-card-header {
+    flex-direction: column;
+  }
+
+  .account-footer .account-meta {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .actions,
+  .create-form-card .form-actions {
+    flex-direction: column;
+  }
+}

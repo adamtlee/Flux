@@ -84,11 +84,55 @@ public sealed class DatabaseSchemaInitializer(BankDbContext context) : IDatabase
             CREATE INDEX IF NOT EXISTS IX_ReceiptItems_ReceiptId ON ReceiptItems (ReceiptId);
         ", cancellationToken);
 
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE TABLE IF NOT EXISTS Subscriptions (
+                Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                OwnerUserId TEXT NOT NULL,
+                OwnerUsername TEXT NOT NULL,
+                ServiceName TEXT NOT NULL,
+                ProviderName TEXT NOT NULL,
+                Category INTEGER NOT NULL,
+                TagsCsv TEXT NOT NULL,
+                BillingCycle INTEGER NOT NULL,
+                Amount REAL NOT NULL,
+                CurrencyCode TEXT NOT NULL,
+                StartDateUtc TEXT NOT NULL,
+                NextDueDateUtc TEXT NOT NULL,
+                ReminderDaysBeforeDue INTEGER NOT NULL,
+                AutoRenew INTEGER NOT NULL,
+                Status INTEGER NOT NULL,
+                Notes TEXT NULL,
+                CancelledAtUtc TEXT NULL,
+                CreatedAt TEXT NOT NULL,
+                UpdatedAt TEXT NOT NULL
+            );
+        ", cancellationToken);
+
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE INDEX IF NOT EXISTS IX_Subscriptions_OwnerUserId_NextDueDateUtc ON Subscriptions (OwnerUserId, NextDueDateUtc);
+        ", cancellationToken);
+
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE INDEX IF NOT EXISTS IX_Subscriptions_OwnerUserId_Category ON Subscriptions (OwnerUserId, Category);
+        ", cancellationToken);
+
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE INDEX IF NOT EXISTS IX_Subscriptions_OwnerUserId_Status ON Subscriptions (OwnerUserId, Status);
+        ", cancellationToken);
+
         EnsureColumnExists(context, "UserAccounts", "Role", "TEXT NOT NULL DEFAULT 'FreeMember'");
         EnsureColumnExists(context, "Accounts", "OwnerUserId", "TEXT NULL");
         EnsureColumnExists(context, "Accounts", "AccountName", "TEXT NULL");
         EnsureColumnExists(context, "Accounts", "CreditCardAprPercent", "REAL NULL");
         EnsureColumnExists(context, "Accounts", "SavingsApyPercent", "REAL NULL");
+        EnsureColumnExists(context, "Subscriptions", "ProviderName", "TEXT NOT NULL DEFAULT ''");
+        EnsureColumnExists(context, "Subscriptions", "Category", "INTEGER NOT NULL DEFAULT 9");
+        EnsureColumnExists(context, "Subscriptions", "TagsCsv", "TEXT NOT NULL DEFAULT ''");
+        EnsureColumnExists(context, "Subscriptions", "BillingCycle", "INTEGER NOT NULL DEFAULT 1");
+        EnsureColumnExists(context, "Subscriptions", "ReminderDaysBeforeDue", "INTEGER NOT NULL DEFAULT 3");
+        EnsureColumnExists(context, "Subscriptions", "AutoRenew", "INTEGER NOT NULL DEFAULT 1");
+        EnsureColumnExists(context, "Subscriptions", "Status", "INTEGER NOT NULL DEFAULT 0");
+        EnsureColumnExists(context, "Subscriptions", "CancelledAtUtc", "TEXT NULL");
     }
 
     private static void EnsureColumnExists(BankDbContext context, string tableName, string columnName, string columnDefinition)
