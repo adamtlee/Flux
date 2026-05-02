@@ -1,4 +1,7 @@
-export type DeductionMode = 'percentage' | 'flat';
+export enum DeductionMode {
+  Percentage = 0,
+  Flat = 1
+}
 
 export type EarningsViewMode = 'gross' | 'net';
 
@@ -44,4 +47,37 @@ export interface UpsertEarningsEntryRequest {
   deductionMode: DeductionMode;
   deductionValue: number;
   currencyCode?: string;
+}
+
+export interface EarningsEntryResponse {
+  id: number;
+  ownerUserId: string;
+  ownerUsername: string;
+  label: string;
+  annualGrossSalary: number;
+  deductionMode: DeductionMode;
+  deductionValue: number;
+  currencyCode: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EarningsSummaryResponse {
+  entries: EarningsSummaryEntryResponse[];
+  totalGross: EarningsPeriodBreakdown;
+  totalNet: EarningsPeriodBreakdown;
+  totalAnnualDeductions: number;
+}
+
+export interface EarningsSummaryEntryResponse {
+  id: number;
+  label: string;
+  annualGrossSalary: number;
+  deductionMode: DeductionMode;
+  deductionValue: number;
+  currencyCode: string;
+  annualDeduction: number;
+  annualNetSalary: number;
+  grossBreakdown: EarningsPeriodBreakdown;
+  netBreakdown: EarningsPeriodBreakdown;
 }

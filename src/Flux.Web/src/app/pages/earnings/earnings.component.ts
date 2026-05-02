@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { forkJoin, Subject, takeUntil } from 'rxjs';
 import {
   DeductionMode,
   EarningsEntry,
@@ -11,25 +11,28 @@ import {
   EarningsViewMode,
   UpsertEarningsEntryRequest
 } from '../../models/earnings';
+import { LoadingComponent } from '../../components/loading/loading.component';
 import { EarningsService } from '../../services/earnings.service';
 
 @Component({
   selector: 'app-earnings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LoadingComponent],
   templateUrl: './earnings.component.html',
   styleUrl: './earnings.component.scss'
 })
 export class EarningsComponent implements OnInit, OnDestroy {
   readonly deductionModeOptions: { value: DeductionMode; label: string }[] = [
-    { value: 'percentage', label: 'Percent' },
-    { value: 'flat', label: 'Flat amount' }
+    { value: DeductionMode.Percentage, label: 'Percent' },
+    { value: DeductionMode.Flat, label: 'Flat amount' }
   ];
 
   activeTab: EarningsTab = 'entries';
   viewMode: EarningsViewMode = 'net';
   entries: EarningsEntry[] = [];
   summary: EarningsSummary;
+  loading = true;
+  error: string | null = null;
   isCreating = true;
   editingEntryId: number | null = null;
   formError: string | null = null;
@@ -44,20 +47,11 @@ export class EarningsComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   constructor(private readonly earningsService: EarningsService) {
-    this.summary = this.earningsService.getSummary([]);
+    this.summary = this.createEmptySummary();
   }
 
   ngOnInit(): void {
-    this.earningsService.getEntries()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((entries) => {
-        this.entries = entries;
-        this.summary = this.earningsService.getSummary(entries);
-
-        if (this.editingEntryId !== null && !entries.some((entry) => entry.id === this.editingEntryId)) {
-          this.cancelEdit();
-        }
-      });
+    this.reloadData();
   }
 
   ngOnDestroy(): void {
@@ -78,6 +72,33 @@ export class EarningsComponent implements OnInit, OnDestroy {
     this.formError = null;
   }
 
+  reloadData(): void {
+    this.loading = true;
+    this.error = null;
+
+    forkJoin({
+      entries: this.earningsService.getEntries(),
+      summary: this.earningsService.getSummary()
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ entries, summary }) => {
+          this.entries = entries;
+          this.summary = summary;
+          this.loading = false;
+
+          if (this.editingEntryId !== null && !entries.some((entry) => entry.id === this.editingEntryId)) {
+            this.cancelEdit();
+          }
+        },
+        error: (err) => {
+          console.error('Error loading earnings', err);
+          this.error = err?.error?.message ?? 'Failed to load earnings. Please try again.';
+          this.loading = false;
+        }
+      });
+  }
+
   createEntry(): void {
     this.formError = this.validateEntry(this.newEntry);
     this.successMessage = null;
@@ -86,10 +107,20 @@ export class EarningsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.earningsService.addEntry(this.newEntry);
-    this.newEntry = this.createDefaultEntry();
-    this.successMessage = 'Earnings entry added.';
-    this.activeTab = 'breakdown';
+    this.earningsService.addEntry(this.newEntry)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.newEntry = this.createDefaultEntry();
+          this.successMessage = 'Earnings entry added.';
+          this.activeTab = 'breakdown';
+          this.reloadData();
+        },
+        error: (err) => {
+          console.error('Error creating earnings entry', err);
+          this.formError = err?.error?.message ?? 'Failed to create earnings entry.';
+        }
+      });
   }
 
   startEdit(entry: EarningsEntry): void {
@@ -114,14 +145,19 @@ export class EarningsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const updatedEntry = this.earningsService.updateEntry(this.editEntry);
-    if (!updatedEntry) {
-      this.formError = 'That earnings entry could not be found.';
-      return;
-    }
-
-    this.editingEntryId = null;
-    this.successMessage = 'Earnings entry updated.';
+    this.earningsService.updateEntry(this.editEntry)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.editingEntryId = null;
+          this.successMessage = 'Earnings entry updated.';
+          this.reloadData();
+        },
+        error: (err) => {
+          console.error('Error updating earnings entry', err);
+          this.formError = err?.error?.message ?? 'Failed to update earnings entry.';
+        }
+      });
   }
 
   cancelEdit(): void {
@@ -130,9 +166,19 @@ export class EarningsComponent implements OnInit, OnDestroy {
   }
 
   removeEntry(entry: EarningsEntry): void {
-    this.earningsService.removeEntry(entry.id);
-    this.successMessage = 'Earnings entry removed.';
-    this.formError = null;
+    this.earningsService.removeEntry(entry.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.successMessage = 'Earnings entry removed.';
+          this.formError = null;
+          this.reloadData();
+        },
+        error: (err) => {
+          console.error('Error removing earnings entry', err);
+          this.formError = err?.error?.message ?? 'Failed to remove earnings entry.';
+        }
+      });
   }
 
   formatCurrency(amount: number, currencyCode = 'USD'): string {
@@ -168,7 +214,7 @@ export class EarningsComponent implements OnInit, OnDestroy {
   }
 
   getDeductionLabel(summary: EarningsEntrySummary): string {
-    return summary.entry.deductionMode === 'percentage'
+    return summary.entry.deductionMode === DeductionMode.Percentage
       ? `${summary.entry.deductionValue.toFixed(2)}% estimated tax deduction`
       : `${this.formatCurrency(summary.entry.deductionValue, summary.entry.currencyCode)} annual estimated tax deduction`;
   }
@@ -186,11 +232,11 @@ export class EarningsComponent implements OnInit, OnDestroy {
       return 'Annual gross salary must be greater than zero.';
     }
 
-    if (entry.deductionMode === 'percentage' && (entry.deductionValue < 0 || entry.deductionValue > 100)) {
+    if (entry.deductionMode === DeductionMode.Percentage && (entry.deductionValue < 0 || entry.deductionValue > 100)) {
       return 'Percent deduction must be between 0 and 100.';
     }
 
-    if (entry.deductionMode === 'flat' && entry.deductionValue < 0) {
+    if (entry.deductionMode === DeductionMode.Flat && entry.deductionValue < 0) {
       return 'Flat deduction must be zero or greater.';
     }
 
@@ -201,9 +247,32 @@ export class EarningsComponent implements OnInit, OnDestroy {
     return {
       label: '',
       annualGrossSalary: 50000,
-      deductionMode: 'percentage',
+      deductionMode: DeductionMode.Percentage,
       deductionValue: 0,
       currencyCode: 'USD'
+    };
+  }
+
+  private createEmptySummary(): EarningsSummary {
+    return {
+      entries: [],
+      totalGross: {
+        annual: 0,
+        monthly: 0,
+        biWeekly: 0,
+        weekly: 0,
+        daily: 0,
+        hourly: 0
+      },
+      totalNet: {
+        annual: 0,
+        monthly: 0,
+        biWeekly: 0,
+        weekly: 0,
+        daily: 0,
+        hourly: 0
+      },
+      totalAnnualDeductions: 0
     };
   }
 }

@@ -12,6 +12,7 @@ public class BankDbContext : DbContext
     public DbSet<Receipt> Receipts { get; set; }
     public DbSet<ReceiptItem> ReceiptItems { get; set; }
     public DbSet<Subscription> Subscriptions { get; set; }
+    public DbSet<Earning> Earnings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -127,5 +128,31 @@ public class BankDbContext : DbContext
 
         modelBuilder.Entity<Subscription>()
             .HasIndex(subscription => new { subscription.OwnerUserId, subscription.Status });
+
+        modelBuilder.Entity<Earning>()
+            .Property(earning => earning.OwnerUsername)
+            .HasMaxLength(100);
+
+        modelBuilder.Entity<Earning>()
+            .Property(earning => earning.Label)
+            .HasMaxLength(150);
+
+        modelBuilder.Entity<Earning>()
+            .Property(earning => earning.CurrencyCode)
+            .HasMaxLength(3);
+
+        modelBuilder.Entity<Earning>()
+            .Property(earning => earning.AnnualGrossSalary)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<Earning>()
+            .Property(earning => earning.DeductionValue)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<Earning>()
+            .HasIndex(earning => new { earning.OwnerUserId, earning.Label });
+
+        modelBuilder.Entity<Earning>()
+            .HasIndex(earning => new { earning.OwnerUserId, earning.UpdatedAt });
     }
 }

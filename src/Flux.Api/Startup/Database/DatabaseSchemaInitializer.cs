@@ -120,6 +120,29 @@ public sealed class DatabaseSchemaInitializer(BankDbContext context) : IDatabase
             CREATE INDEX IF NOT EXISTS IX_Subscriptions_OwnerUserId_Status ON Subscriptions (OwnerUserId, Status);
         ", cancellationToken);
 
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE TABLE IF NOT EXISTS Earnings (
+                Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                OwnerUserId TEXT NOT NULL,
+                OwnerUsername TEXT NOT NULL,
+                Label TEXT NOT NULL,
+                AnnualGrossSalary REAL NOT NULL,
+                DeductionMode INTEGER NOT NULL,
+                DeductionValue REAL NOT NULL,
+                CurrencyCode TEXT NOT NULL,
+                CreatedAt TEXT NOT NULL,
+                UpdatedAt TEXT NOT NULL
+            );
+        ", cancellationToken);
+
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE INDEX IF NOT EXISTS IX_Earnings_OwnerUserId_Label ON Earnings (OwnerUserId, Label);
+        ", cancellationToken);
+
+        await context.Database.ExecuteSqlRawAsync(@"
+            CREATE INDEX IF NOT EXISTS IX_Earnings_OwnerUserId_UpdatedAt ON Earnings (OwnerUserId, UpdatedAt);
+        ", cancellationToken);
+
         EnsureColumnExists(context, "UserAccounts", "Role", "TEXT NOT NULL DEFAULT 'FreeMember'");
         EnsureColumnExists(context, "Accounts", "OwnerUserId", "TEXT NULL");
         EnsureColumnExists(context, "Accounts", "AccountName", "TEXT NULL");
@@ -133,6 +156,14 @@ public sealed class DatabaseSchemaInitializer(BankDbContext context) : IDatabase
         EnsureColumnExists(context, "Subscriptions", "AutoRenew", "INTEGER NOT NULL DEFAULT 1");
         EnsureColumnExists(context, "Subscriptions", "Status", "INTEGER NOT NULL DEFAULT 0");
         EnsureColumnExists(context, "Subscriptions", "CancelledAtUtc", "TEXT NULL");
+        EnsureColumnExists(context, "Earnings", "OwnerUsername", "TEXT NOT NULL DEFAULT ''");
+        EnsureColumnExists(context, "Earnings", "Label", "TEXT NOT NULL DEFAULT ''");
+        EnsureColumnExists(context, "Earnings", "AnnualGrossSalary", "REAL NOT NULL DEFAULT 0");
+        EnsureColumnExists(context, "Earnings", "DeductionMode", "INTEGER NOT NULL DEFAULT 0");
+        EnsureColumnExists(context, "Earnings", "DeductionValue", "REAL NOT NULL DEFAULT 0");
+        EnsureColumnExists(context, "Earnings", "CurrencyCode", "TEXT NOT NULL DEFAULT 'USD'");
+        EnsureColumnExists(context, "Earnings", "CreatedAt", "TEXT NOT NULL DEFAULT '0001-01-01T00:00:00Z'");
+        EnsureColumnExists(context, "Earnings", "UpdatedAt", "TEXT NOT NULL DEFAULT '0001-01-01T00:00:00Z'");
     }
 
     private static void EnsureColumnExists(BankDbContext context, string tableName, string columnName, string columnDefinition)

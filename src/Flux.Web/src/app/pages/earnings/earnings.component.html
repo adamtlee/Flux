@@ -4,66 +4,76 @@
     <p>Model multiple income streams, estimate tax deductions, and switch between gross and net salary views.</p>
   </div>
 
-  <p *ngIf="successMessage" class="success-message">{{ successMessage }}</p>
-  <div *ngIf="formError" class="error-message">
-    <p>{{ formError }}</p>
+  <app-loading *ngIf="loading"></app-loading>
+
+  <div *ngIf="error && !loading" class="error-message">
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="reloadData()">
+      Try Again
+    </button>
   </div>
 
-  <div class="total-balance-card">
-    <div class="hero-row">
-      <div class="balance-content">
-        <h3>{{ getDisplayModeLabel() }} Annual Earnings</h3>
-        <p class="balance-amount">{{ formatCurrency(getDisplayedCombinedAnnual()) }}</p>
-        <p class="balance-accounts">{{ formatCurrency(getDisplayedCombinedMonthly()) }} monthly across {{ entries.length }} job{{ entries.length !== 1 ? 's' : '' }}</p>
-        <p class="balance-accounts">Annual estimated deductions: {{ formatCurrency(summary.totalAnnualDeductions) }}</p>
-      </div>
+  <div *ngIf="!loading && !error">
+    <p *ngIf="successMessage" class="success-message">{{ successMessage }}</p>
+    <div *ngIf="formError" class="error-message">
+      <p>{{ formError }}</p>
+    </div>
 
-      <div class="view-toggle" role="group" aria-label="Earnings view mode">
-        <button
-          type="button"
-          class="toggle-btn"
-          [class.active]="viewMode === 'gross'"
-          (click)="setViewMode('gross')">
-          Gross
-        </button>
-        <button
-          type="button"
-          class="toggle-btn"
-          [class.active]="viewMode === 'net'"
-          (click)="setViewMode('net')">
-          Net
-        </button>
+    <div class="total-balance-card">
+      <div class="hero-row">
+        <div class="balance-content">
+          <h3>{{ getDisplayModeLabel() }} Annual Earnings</h3>
+          <p class="balance-amount">{{ formatCurrency(getDisplayedCombinedAnnual()) }}</p>
+          <p class="balance-accounts">{{ formatCurrency(getDisplayedCombinedMonthly()) }} monthly across {{ entries.length }} job{{ entries.length !== 1 ? 's' : '' }}</p>
+          <p class="balance-accounts">Annual estimated deductions: {{ formatCurrency(summary.totalAnnualDeductions) }}</p>
+        </div>
+
+        <div class="view-toggle" role="group" aria-label="Earnings view mode">
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="viewMode === 'gross'"
+            (click)="setViewMode('gross')">
+            Gross
+          </button>
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="viewMode === 'net'"
+            (click)="setViewMode('net')">
+            Net
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="tabs" role="tablist" aria-label="Earnings tabs">
-    <button
-      type="button"
-      class="tab-btn"
-      role="tab"
-      [class.active]="activeTab === 'entries'"
-      [attr.aria-selected]="activeTab === 'entries'"
-      (click)="setActiveTab('entries')">
-      Entries
-    </button>
-    <button
-      type="button"
-      class="tab-btn"
-      role="tab"
-      [class.active]="activeTab === 'breakdown'"
-      [attr.aria-selected]="activeTab === 'breakdown'"
-      (click)="setActiveTab('breakdown')">
-      Breakdown
-    </button>
-  </div>
-
-  <div *ngIf="activeTab === 'entries'">
-    <div class="create-account-section">
-      <button class="btn btn-primary" (click)="toggleCreateForm()">
-        {{ isCreating ? 'Hide Entry Form' : 'Add Earnings Entry' }}
+    <div class="tabs" role="tablist" aria-label="Earnings tabs">
+      <button
+        type="button"
+        class="tab-btn"
+        role="tab"
+        [class.active]="activeTab === 'entries'"
+        [attr.aria-selected]="activeTab === 'entries'"
+        (click)="setActiveTab('entries')">
+        Entries
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        role="tab"
+        [class.active]="activeTab === 'breakdown'"
+        [attr.aria-selected]="activeTab === 'breakdown'"
+        (click)="setActiveTab('breakdown')">
+        Breakdown
       </button>
     </div>
+
+    <div *ngIf="activeTab === 'entries'">
+      <div class="create-account-section">
+        <button class="btn btn-primary" (click)="toggleCreateForm()">
+          {{ isCreating ? 'Hide Entry Form' : 'Add Earnings Entry' }}
+        </button>
+      </div>
 
     <div *ngIf="isCreating" class="create-form-card">
       <h3>Add Earnings Entry</h3>
@@ -107,7 +117,7 @@
           </div>
 
           <div class="form-group">
-            <label for="earnings-deduction-value">{{ newEntry.deductionMode === 'percentage' ? 'Estimated Tax Deduction %' : 'Estimated Tax Deduction Amount' }}</label>
+            <label for="earnings-deduction-value">{{ newEntry.deductionMode === 0 ? 'Estimated Tax Deduction %' : 'Estimated Tax Deduction Amount' }}</label>
             <input
               type="number"
               id="earnings-deduction-value"
@@ -115,7 +125,7 @@
               [(ngModel)]="newEntry.deductionValue"
               class="form-control"
               [min]="0"
-              [max]="newEntry.deductionMode === 'percentage' ? 100 : null"
+              [max]="newEntry.deductionMode === 0 ? 100 : null"
               step="0.01"
               required>
           </div>
@@ -217,7 +227,7 @@
                 </div>
 
                 <div class="form-group">
-                  <label for="edit-earnings-deduction-value">{{ editEntry.deductionMode === 'percentage' ? 'Estimated Tax Deduction %' : 'Estimated Tax Deduction Amount' }}</label>
+                  <label for="edit-earnings-deduction-value">{{ editEntry.deductionMode === 0 ? 'Estimated Tax Deduction %' : 'Estimated Tax Deduction Amount' }}</label>
                   <input
                     type="number"
                     id="edit-earnings-deduction-value"
@@ -225,7 +235,7 @@
                     [(ngModel)]="editEntry.deductionValue"
                     class="form-control"
                     [min]="0"
-                    [max]="editEntry.deductionMode === 'percentage' ? 100 : null"
+                    [max]="editEntry.deductionMode === 0 ? 100 : null"
                     step="0.01"
                     required>
                 </div>
@@ -265,33 +275,33 @@
     </ng-template>
   </div>
 
-  <div *ngIf="activeTab === 'breakdown'" class="insights-tab earnings-breakdown-tab">
-    <div class="summary-grid">
-      <div class="summary-card">
-        <p class="summary-label">Annual {{ getDisplayModeLabel() }}</p>
-        <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().annual) }}</p>
+    <div *ngIf="activeTab === 'breakdown'" class="insights-tab earnings-breakdown-tab">
+      <div class="summary-grid">
+        <div class="summary-card">
+          <p class="summary-label">Annual {{ getDisplayModeLabel() }}</p>
+          <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().annual) }}</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Monthly {{ getDisplayModeLabel() }}</p>
+          <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().monthly) }}</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Bi-weekly {{ getDisplayModeLabel() }}</p>
+          <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().biWeekly) }}</p>
+        </div>
+        <div class="summary-card">
+          <p class="summary-label">Weekly {{ getDisplayModeLabel() }}</p>
+          <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().weekly) }}</p>
+        </div>
+        <div class="summary-card accent-card">
+          <p class="summary-label">Daily {{ getDisplayModeLabel() }}</p>
+          <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().daily) }}</p>
+        </div>
+        <div class="summary-card accent-card">
+          <p class="summary-label">Hourly {{ getDisplayModeLabel() }}</p>
+          <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().hourly) }}</p>
+        </div>
       </div>
-      <div class="summary-card">
-        <p class="summary-label">Monthly {{ getDisplayModeLabel() }}</p>
-        <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().monthly) }}</p>
-      </div>
-      <div class="summary-card">
-        <p class="summary-label">Bi-weekly {{ getDisplayModeLabel() }}</p>
-        <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().biWeekly) }}</p>
-      </div>
-      <div class="summary-card">
-        <p class="summary-label">Weekly {{ getDisplayModeLabel() }}</p>
-        <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().weekly) }}</p>
-      </div>
-      <div class="summary-card accent-card">
-        <p class="summary-label">Daily {{ getDisplayModeLabel() }}</p>
-        <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().daily) }}</p>
-      </div>
-      <div class="summary-card accent-card">
-        <p class="summary-label">Hourly {{ getDisplayModeLabel() }}</p>
-        <p class="summary-value">{{ formatCurrency(getDisplayedTotalBreakdown().hourly) }}</p>
-      </div>
-    </div>
 
     <div class="breakdown-section" *ngIf="summary.entries.length > 0; else noBreakdownEntries">
       <div class="section-heading">
@@ -345,5 +355,6 @@
         <p>Create an earnings entry in the Entries tab to view the salary breakdown cards.</p>
       </div>
     </ng-template>
+    </div>
   </div>
 </div>
