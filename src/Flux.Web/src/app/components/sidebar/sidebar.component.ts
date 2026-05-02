@@ -67,6 +67,11 @@ export class SidebarComponent {
       route: '/subscriptions'
     },
     {
+      id: 'earnings',
+      label: 'Earnings',
+      route: '/earnings'
+    },
+    {
       id: 'imports',
       label: 'Imports',
       route: '/accounts',
