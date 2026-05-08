@@ -119,6 +119,26 @@ public sealed class ReceiptService(BankDbContext context) : IReceiptService
         return true;
     }
 
+    public async Task<byte[]> ExportReceiptsAsync(Guid currentUserId, bool isAdministrator, Guid? targetUserId, ReceiptFileFormat format)
+    {
+        var effectiveUserId = await ResolveEffectiveOwnerIdAsync(currentUserId, isAdministrator, targetUserId);
+
+        var receipts = await context.Receipts
+            .AsNoTracking()
+            .Include(r => r.Items)
+            .Where(r => r.OwnerUserId == effectiveUserId)
+            .OrderByDescending(r => r.PurchasedAtUtc)
+            .ThenByDescending(r => r.CreatedAt)
+            .ToListAsync();
+
+        return format switch
+        {
+            ReceiptFileFormat.Csv => BuildExportCsv(receipts),
+            ReceiptFileFormat.Xlsx => BuildExportXlsx(receipts),
+            _ => throw new ArgumentException("Unsupported export format.")
+        };
+    }
+
     private async Task ValidateModelAsync(ReceiptUpsertModel model, Guid ownerUserId, bool isAdministrator)
     {
         if (string.IsNullOrWhiteSpace(model.MerchantName))
@@ -206,5 +226,111 @@ public sealed class ReceiptService(BankDbContext context) : IReceiptService
         }
 
         return currencyCode.Trim().ToUpperInvariant();
+    }
+
+    private static byte[] BuildExportCsv(IEnumerable<Receipt> receipts)
+    {
+        using var stringWriter = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+        using var csv = new CsvHelper.CsvWriter(stringWriter, System.Globalization.CultureInfo.InvariantCulture);
+
+        csv.WriteField("Id");
+        csv.WriteField("MerchantName");
+        csv.WriteField("PurchasedAtUtc");
+        csv.WriteField("TotalAmount");
+        csv.WriteField("CurrencyCode");
+        csv.WriteField("OwnerUserId");
+        csv.WriteField("OwnerUsername");
+        csv.WriteField("AccountId");
+        csv.WriteField("Notes");
+        csv.WriteField("CreatedAt");
+        csv.WriteField("UpdatedAt");
+        csv.NextRecord();
+
+        foreach (var r in receipts)
+        {
+            csv.WriteField(r.Id);
+            csv.WriteField(r.MerchantName);
+            csv.WriteField(r.PurchasedAtUtc);
+            csv.WriteField(r.TotalAmount);
+            csv.WriteField(r.CurrencyCode);
+            csv.WriteField(r.OwnerUserId);
+            csv.WriteField(r.OwnerUsername);
+            csv.WriteField(r.AccountId);
+            csv.WriteField(r.Notes);
+            csv.WriteField(r.CreatedAt);
+            csv.WriteField(r.UpdatedAt);
+            csv.NextRecord();
+        }
+
+        return System.Text.Encoding.UTF8.GetBytes(stringWriter.ToString());
+    }
+
+    private static byte[] BuildExportXlsx(IEnumerable<Receipt> receipts)
+    {
+        using var workbook = new ClosedXML.Excel.XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("Receipts");
+
+        var headers = new[]
+        {
+            "Id",
+            "MerchantName",
+            "PurchasedAtUtc",
+            "TotalAmount",
+            "CurrencyCode",
+            "OwnerUserId",
+            "OwnerUsername",
+            "AccountId",
+            "Notes",
+            "CreatedAt",
+            "UpdatedAt"
+        };
+
+        for (var i = 0; i < headers.Length; i++)
+        {
+            worksheet.Cell(1, i + 1).Value = headers[i];
+        }
+
+        var row = 2;
+        foreach (var r in receipts)
+        {
+            worksheet.Cell(row, 1).Value = r.Id.ToString();
+            worksheet.Cell(row, 2).Value = r.MerchantName;
+            worksheet.Cell(row, 3).Value = r.PurchasedAtUtc;
+            worksheet.Cell(row, 4).Value = r.TotalAmount;
+            worksheet.Cell(row, 5).Value = r.CurrencyCode;
+            worksheet.Cell(row, 6).Value = r.OwnerUserId.ToString();
+            worksheet.Cell(row, 7).Value = r.OwnerUsername;
+            worksheet.Cell(row, 8).Value = r.AccountId?.ToString();
+            worksheet.Cell(row, 9).Value = r.Notes;
+            worksheet.Cell(row, 10).Value = r.CreatedAt;
+            worksheet.Cell(row, 11).Value = r.UpdatedAt;
+            row++;
+        }
+
+        worksheet.Columns().AdjustToContents();
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        return stream.ToArray();
+    }
+
+    private async Task<Guid> ResolveEffectiveOwnerIdAsync(Guid currentUserId, bool isAdministrator, Guid? targetUserId)
+    {
+        if (!targetUserId.HasValue || targetUserId.Value == Guid.Empty)
+        {
+            return currentUserId;
+        }
+
+        if (!isAdministrator)
+        {
+            throw new UnauthorizedAccessException("Only administrators can target another user.");
+        }
+
+        var user = await context.UserAccounts.FirstOrDefaultAsync(u => u.Id == targetUserId.Value);
+        if (user is null)
+        {
+            throw new ArgumentException($"Target user with ID {targetUserId.Value} was not found.");
+        }
+
+        return user.Id;
     }
 }

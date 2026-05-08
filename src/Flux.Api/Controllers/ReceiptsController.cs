@@ -171,6 +171,63 @@ public sealed class ReceiptsController(
         return NoContent();
     }
 
+    /// <summary>
+    /// Exports receipts as CSV for the current user (admins may target another user).
+    /// </summary>
+    [HttpGet("export/csv")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ExportCsv([FromQuery] Guid? targetUserId)
+    {
+        return await ExportByFormatAsync(ReceiptFileFormat.Csv, targetUserId);
+    }
+
+    /// <summary>
+    /// Exports receipts as XLSX for the current user (admins may target another user).
+    /// </summary>
+    [HttpGet("export/xlsx")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ExportXlsx([FromQuery] Guid? targetUserId)
+    {
+        return await ExportByFormatAsync(ReceiptFileFormat.Xlsx, targetUserId);
+    }
+
+    private async Task<IActionResult> ExportByFormatAsync(ReceiptFileFormat format, Guid? targetUserId)
+    {
+        try
+        {
+            if (!TryGetCurrentUserId(out var userId))
+            {
+                return Unauthorized(new { message = "User identity is missing from token." });
+            }
+
+            var isAdministrator = User.IsInRole(ApplicationRoles.Administrator);
+            var bytes = await receiptService.ExportReceiptsAsync(userId, isAdministrator, targetUserId, format);
+            var dateSuffix = DateTime.UtcNow.ToString("yyyyMMdd");
+
+            return format switch
+            {
+                ReceiptFileFormat.Csv => File(bytes, "text/csv", $"receipts-{dateSuffix}.csv"),
+                ReceiptFileFormat.Xlsx => File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"receipts-{dateSuffix}.xlsx"),
+                _ => BadRequest(new { message = "Unsupported export format." })
+            };
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogWarning(ex, "Unauthorized export attempt.");
+            return Forbid();
+        }
+        catch (ArgumentException ex)
+        {
+            return CreateValidationErrorResponse(ex, "receipt export");
+        }
+    }
+
     private BadRequestObjectResult CreateValidationErrorResponse(Exception exception, string operation)
     {
         var correlationId = HttpContext.TraceIdentifier;

@@ -418,6 +418,19 @@
     </div>
 
     <div *ngIf="activeTab === 'receipts'" class="receipts-tab" id="receipts-section">
+      <div class="import-export-card exports-templates-section">
+        <h3>Export Receipts</h3>
+        <p class="helper-text">Download your receipts for backup or analysis.</p>
+
+        <div class="import-export-actions">
+          <button type="button" class="btn btn-secondary" (click)="exportReceiptsCsv()" [disabled]="exportInProgress || loading">
+            Export CSV
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="exportReceiptsXlsx()" [disabled]="exportInProgress || loading">
+            Export XLSX
+          </button>
+        </div>
+      </div>
       <div class="create-form-card receipt-form-card">
         <h3>Purchased Products Receipt</h3>
         <form (ngSubmit)="createReceipt()" #receiptForm="ngForm">

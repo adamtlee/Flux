@@ -10,4 +10,5 @@ public interface IReceiptService
     Task<Receipt> CreateReceiptAsync(Guid userId, string username, ReceiptUpsertModel model);
     Task<Receipt?> UpdateReceiptAsync(int id, Guid userId, bool isAdministrator, ReceiptUpsertModel model);
     Task<bool> DeleteReceiptAsync(int id, Guid userId, bool isAdministrator);
+    Task<byte[]> ExportReceiptsAsync(Guid currentUserId, bool isAdministrator, Guid? targetUserId, ReceiptFileFormat format);
 }

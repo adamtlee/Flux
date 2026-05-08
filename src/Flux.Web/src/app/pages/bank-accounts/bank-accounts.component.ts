@@ -524,6 +524,39 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
     });
   }
 
+  exportReceiptsCsv(): void {
+    this.exportReceiptsByType('csv');
+  }
+
+  exportReceiptsXlsx(): void {
+    this.exportReceiptsByType('xlsx');
+  }
+
+  private exportReceiptsByType(type: 'csv' | 'xlsx'): void {
+    this.exportInProgress = true;
+    this.importError = null;
+
+    const stream$ = type === 'csv'
+      ? this.receiptService.exportReceiptsCsv()
+      : this.receiptService.exportReceiptsXlsx();
+
+    stream$.subscribe({
+      next: (blob) => {
+        const dateSuffix = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        const filename = type === 'csv'
+          ? `receipts-${dateSuffix}.csv`
+          : `receipts-${dateSuffix}.xlsx`;
+        this.triggerDownload(blob, filename);
+        this.exportInProgress = false;
+      },
+      error: (err) => {
+        console.error('Error exporting receipts:', err);
+        this.importError = err?.error?.error ?? err?.error?.message ?? 'Export failed. Please try again.';
+        this.exportInProgress = false;
+      }
+    });
+  }
+
   private triggerDownload(blob: Blob, filename: string): void {
     const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');

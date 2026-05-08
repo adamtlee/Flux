@@ -26,4 +26,16 @@ export class ReceiptService {
   deleteReceipt(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  exportReceiptsCsv(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export/csv`, {
+      responseType: 'blob'
+    });
+  }
+
+  exportReceiptsXlsx(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export/xlsx`, {
+      responseType: 'blob'
+    });
+  }
 }
