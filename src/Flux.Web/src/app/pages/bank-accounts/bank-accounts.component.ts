@@ -476,8 +476,15 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
   }
 
   private exportByType(type: 'csv' | 'xlsx'): void {
-    this.exportInProgress = true;
+    // Validate optional target user id to avoid server 400 from invalid GUIDs
     this.importError = null;
+    const trimmed = this.targetUserId?.trim();
+    if (trimmed && !this.isValidGuid(trimmed)) {
+      this.importError = 'Target User ID is not a valid GUID.';
+      return;
+    }
+
+    this.exportInProgress = true;
 
     const stream$ = type === 'csv'
       ? this.bankAccountService.exportAccountsCsv(this.targetUserId)
@@ -498,6 +505,13 @@ export class BankAccountsComponent implements OnInit, OnDestroy {
         this.exportInProgress = false;
       }
     });
+  }
+
+  private isValidGuid(value: string | null | undefined): boolean {
+    if (!value) return false;
+    // GUID regex: accepts 36-char format with hyphens and optional braces
+    const guidRegex = /^[{(]?[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}[)}]?$/;
+    return guidRegex.test(value.trim());
   }
 
   private downloadTemplate(type: 'csv' | 'xlsx'): void {
