@@ -1,0 +1,174 @@
+<div class="accounts-container">
+  <div class="accounts-header">
+    <h1>Salary Calculator</h1>
+    <p>Enter your gross salary, toggle deductions, and see your take-home pay across every pay period.</p>
+  </div>
+
+  <div class="total-balance-card" *ngIf="result">
+    <div class="balance-content">
+      <h3>Gross Annual Salary</h3>
+      <p class="balance-amount">{{ formatCurrency(result.grossAnnual, result.currencyCode) }}</p>
+      <p class="balance-accounts">{{ formatCurrency(result.totalDeductionsAnnual, result.currencyCode) }} total deductions per year</p>
+      <p class="balance-accounts">{{ formatCurrency(result.netAnnual, result.currencyCode) }} estimated net annual</p>
+    </div>
+  </div>
+
+  <div class="create-form-card">
+    <h3>{{ result ? 'Adjust Calculator' : 'Enter Your Salary' }}</h3>
+
+    <form (ngSubmit)="calculate()" #salaryForm="ngForm">
+      <div class="form-grid">
+        <label>
+          Gross Annual Salary
+          <input
+            type="number"
+            min="0"
+            step="1"
+            name="grossSalary"
+            [(ngModel)]="grossSalary"
+            class="form-control"
+            placeholder="e.g. 75000"
+            required>
+        </label>
+        <label>
+          Currency Code
+          <input
+            type="text"
+            maxlength="3"
+            name="currencyCode"
+            [(ngModel)]="currencyCode"
+            class="form-control"
+            placeholder="USD">
+        </label>
+      </div>
+
+      <div class="deductions-section">
+        <div class="deductions-header">
+          <h4>Deductions <span class="text-secondary">(optional)</span></h4>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="addDeduction()">
+            + Add Custom
+          </button>
+        </div>
+
+        <div class="deductions-list">
+          <div
+            *ngFor="let deduction of deductions; let i = index"
+            class="deduction-row">
+
+            <label class="checkbox-row deduction-toggle">
+              <input
+                type="checkbox"
+                [(ngModel)]="deduction.enabled"
+                [name]="'enabled_' + i">
+              <span *ngIf="!deduction.isCustom" class="deduction-label">{{ deduction.name }}</span>
+              <input
+                *ngIf="deduction.isCustom"
+                type="text"
+                [(ngModel)]="deduction.name"
+                [name]="'name_' + i"
+                class="form-control deduction-name-input"
+                placeholder="Deduction name">
+            </label>
+
+            <div class="deduction-inputs" [class.disabled]="!deduction.enabled">
+              <select
+                [(ngModel)]="deduction.type"
+                [name]="'type_' + i"
+                class="form-control deduction-type-select"
+                [disabled]="!deduction.enabled">
+                <option [ngValue]="deductionTypePercent">% of Gross</option>
+                <option [ngValue]="deductionTypeFixed">Fixed / Year</option>
+              </select>
+              <input
+                type="number"
+                min="0"
+                [max]="deduction.type === deductionTypePercent ? 100 : null"
+                step="0.01"
+                [(ngModel)]="deduction.value"
+                [name]="'value_' + i"
+                class="form-control deduction-value-input"
+                [disabled]="!deduction.enabled"
+                placeholder="0.00">
+              <span class="deduction-unit">
+                {{ deduction.type === deductionTypePercent ? '%' : (currencyCode || 'USD') }}
+              </span>
+            </div>
+
+            <button
+              *ngIf="deduction.isCustom"
+              type="button"
+              class="btn btn-danger btn-icon"
+              (click)="removeDeduction(i)"
+              title="Remove deduction">
+              &times;
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="error" class="error-message">
+        <p>{{ error }}</p>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="calculating">
+          {{ calculating ? 'Calculating...' : 'Calculate' }}
+        </button>
+        <button
+          *ngIf="result"
+          type="button"
+          class="btn btn-secondary"
+          (click)="resetForm()">
+          Reset
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div *ngIf="result" class="results-section">
+    <h3 class="results-title">Take-Home Pay Breakdown</h3>
+
+    <div class="summary-grid pay-grid">
+      <div class="summary-card pay-result-card annual">
+        <p class="summary-label">Annual (Net)</p>
+        <p class="summary-value">{{ formatCurrency(result.netAnnual, result.currencyCode) }}</p>
+      </div>
+      <div class="summary-card pay-result-card monthly">
+        <p class="summary-label">Monthly</p>
+        <p class="summary-value">{{ formatCurrency(result.netMonthly, result.currencyCode) }}</p>
+      </div>
+      <div class="summary-card pay-result-card biweekly">
+        <p class="summary-label">Bi-Weekly</p>
+        <p class="summary-value">{{ formatCurrency(result.netBiweekly, result.currencyCode) }}</p>
+      </div>
+      <div class="summary-card pay-result-card weekly">
+        <p class="summary-label">Weekly</p>
+        <p class="summary-value">{{ formatCurrency(result.netWeekly, result.currencyCode) }}</p>
+      </div>
+      <div class="summary-card pay-result-card daily">
+        <p class="summary-label">Daily</p>
+        <p class="summary-value">{{ formatCurrency(result.netDaily, result.currencyCode) }}</p>
+        <p class="pay-note">Based on 260 working days</p>
+      </div>
+      <div class="summary-card pay-result-card hourly">
+        <p class="summary-label">Hourly</p>
+        <p class="summary-value">{{ formatCurrency(result.netHourly, result.currencyCode) }}</p>
+        <p class="pay-note">Based on 2,080 hours / year</p>
+      </div>
+    </div>
+
+    <div *ngIf="result.deductionBreakdown.length > 0" class="deduction-breakdown-card">
+      <h4>Deduction Breakdown</h4>
+      <div class="deduction-breakdown-list">
+        <div *ngFor="let d of result.deductionBreakdown" class="deduction-breakdown-row">
+          <span>{{ d.name }}</span>
+          <span class="deduction-amount">-{{ formatCurrency(d.annualAmount, result.currencyCode) }}/yr</span>
+        </div>
+        <div class="deduction-breakdown-total">
+          <span>Total Deductions</span>
+          <span>-{{ formatCurrency(result.totalDeductionsAnnual, result.currencyCode) }}/yr</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
